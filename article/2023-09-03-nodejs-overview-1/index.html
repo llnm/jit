@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>Node.js 프로젝트 개요 1 | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="본 문서는 그동안의 Node.js 기여 경험을 바탕으로 Node.js 프로젝트를 처음 시작하는 사람들을 위해 간략한 개요를 전달하고자 한다. 물론 프로젝트 내용은 지속적으로 변경되고 있으며 현 시점에서 유효한 내용이다. 그러나 어느 정도 견고하게 확정되어 오랫동안 통용되고 있는 내용에 대해 작성하고자 한다. Node.js Core의 용어Node.js 에서의">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js 프로젝트 개요 1">
+<meta property="og:url" content="https://llnm.github.io/article/2023-09-03-nodejs-overview-1/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="본 문서는 그동안의 Node.js 기여 경험을 바탕으로 Node.js 프로젝트를 처음 시작하는 사람들을 위해 간략한 개요를 전달하고자 한다. 물론 프로젝트 내용은 지속적으로 변경되고 있으며 현 시점에서 유효한 내용이다. 그러나 어느 정도 견고하게 확정되어 오랫동안 통용되고 있는 내용에 대해 작성하고자 한다. Node.js Core의 용어Node.js 에서의">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/oWjK2NP.png">
+<meta property="article:published_time" content="2023-09-03T02:34:04.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.imgur.com/oWjK2NP.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-09-03-nodejs-overview-1/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-09-03-nodejs-overview-1" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Node.js 프로젝트 개요 1
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-09-03-nodejs-overview-1/" class="article-date">
+       <time datetime="2023-09-03T02:34:04.000Z" itemprop="datePublished">2023-09-03</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-09-03-nodejs-overview-1/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 4.405K (3.525K/180KW)</span>
+
+                <span class="reading-time">⏱ 7 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <p>본 문서는 그동안의 Node.js 기여 경험을 바탕으로 Node.js 프로젝트를 처음 시작하는
+사람들을 위해 간략한 개요를 전달하고자 한다. 물론 프로젝트 내용은 지속적으로
+변경되고 있으며 현 시점에서 유효한 내용이다. 그러나 어느 정도 견고하게 확정되어
+오랫동안 통용되고 있는 내용에 대해 작성하고자 한다.</p>
+<h2 id="Node-js-Core의-용어"><a href="#Node-js-Core의-용어" class="headerlink" title="Node.js Core의 용어"></a>Node.js Core의 용어</h2><p>Node.js 에서의 각 요소를 가르키는 용어는 여러가지로 통용이 되어왔으나 아래와 같이 공식적으로 정리되었다.</p>
+<ul>
+<li>Built-in(s): Node.js 는 JavaScript 부분과 C++ 부분으로 이루어져 있다. Node
+core를 이루는 기본적으로 JavaScript 코드를 Builtins 혹은 Builtin module 이라고
+부른다.</li>
+<li>Bindings: Builtins 에서 사용하는 API 로서 Native 쪽에서 실행되는 부분을
+뜻한다. Native 코드는 C++로 이루어져 있다. C++ 코드가 직접적으로 사용자
+영역으로 노출되는 경우는 없으며 JavaScript 부분에서 사용자 인터페이스를 거쳐서
+사용된다.</li>
+</ul>
+<p>일반적으로 JavaScript 부분은 사용자 인터페이스를 노출하고 Bindings를 부르기 전에
+입력된 Arguments에 대한 Validation을 처리한다. C++ 코드내에서는 별도의
+Validation은 수행하지 않고 정해진 Arguments가 들어왔는지에 대해서 Assertion을
+수행한다.</p>
+<ul>
+<li>addons: Node.js 에 동적으로 링크되는 Shared library로 Node-API, NAN 를 통해 구성되고 API를 제공한다.</li>
+</ul>
+<p><img src="https://i.imgur.com/oWjK2NP.png"></p>
+<h2 id="프로젝트-소스-구성"><a href="#프로젝트-소스-구성" class="headerlink" title="프로젝트 소스 구성"></a>프로젝트 소스 구성</h2><h3 id="lib"><a href="#lib" class="headerlink" title="lib"></a>lib</h3><ul>
+<li><strong>lib</strong> - JavaScript builtins 에 해당하는 코드가 포함된다. <code>lib/**/*.js</code>
+하위의 코드이다. 모든 모듈은 외부 인터페이스 영역과 internals 영역으로 나뉜다.
+이러한 구분을 통하여 internal 영역의 코드가 사용자에게 노출되어 변조되는 것을
+방지한다. internal&#x2F;bootstrap과 internal&#x2F;main 은 Node.js 의 Builtins를
+Bootstrap하는 코드와 옵션별 Entry 코드를 포함하고 있다.</li>
+</ul>
+<h3 id="src"><a href="#src" class="headerlink" title="src"></a>src</h3><ul>
+<li><strong>src</strong> - C++ 영역에서 구현된 <code>src/node_*.cc</code> 의 이름으로 된 bindings 코드와
+<code>node_api.h</code> 파일에 정의된 addons (Node-API)지원 인터페이스 코드를 제공한다.
+<code>node_main.cc</code>는 Node.js 의 프로그램 Entry 이며, 각 JavaScript Context 별로
+생성된 환경정보는 <code>env.cc</code> 의 코드에서 정의된 Environment 클래스에 의해
+다룬다.</li>
+</ul>
+<h3 id="deps"><a href="#deps" class="headerlink" title="deps"></a>deps</h3><ul>
+<li><strong>deps</strong> - Node.js 가 사용하고 있는 외부 Dependency들을 다룬다. v8, libuv,
+http_parser, zlib, openssl 등이 있다. git submodule이나 subtree로 다루지 않고
+직접 코드를 copy하여 사용한다. 빌드를 위해 각 프로젝트의 build config를 직접
+부르지 않고 gyp로 구성한 build config 를 각각에 추가해 프로젝트 root의
+node.gyp로 부터 읽는다. dependency가 업데이트 할때 버전 정보를 별도의 header로
+관리하도록 되어있다. (<code>src/*_version.h</code> 파일) 이를 통해 Node.js 에서 각
+dependency의 정보를 확인할 수 있게 한다. 업데이트 스크립트는
+<code>tools/dep_updaters/update-*.sh</code> 에서 확인할 수 있다.</li>
+</ul>
+<h3 id="test"><a href="#test" class="headerlink" title="test"></a>test</h3><ul>
+<li><strong>test</strong> - Node Core에 대한 Test를 다룬다. <code>test/parallel</code> 내 테스트 코드가
+주로 사용되는데, 병렬로 실행되어도 서로 영향을 미치지 않은 코드를 담고 있다.
+이에비해 <code>test/sequential</code>은 순차적으로 실행되어야하는 테스트를 다룬다.
+<code>test/cctest</code>는 gtest로 구성하여 Node.js embedder를 위한 테스트 코드,
+<code>test/addons</code> 은 Node-API에 대한 테스트를 포함한다. <code>test/wpt</code>는 Node.js의 Web
+호환성 테스트를 위해 구성되어있는데, <a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/web-platform-tests/wpt">Web Platform
+Test</a>의 특정 버전을 가져와
+사용한다. wpt 버전을 업데이트하기 위한 tool과 Node.js에서 WPT test harness가
+동작하기 위한 환경 설정을 한다.<ul>
+<li><code>test/common</code>: 해당 폴더는 Node.js test 구성을 위한 툴을 다루고 있다. 해당
+툴의 사용은 선택적인것이 아니고 반드시 모든 테스트가
+<code>test/common/index.js</code>를 호출해줘야한다. 각 테스트를 Node.js 런타임으로 직접
+실행할 수도 있지만 기본적으로 Worker Thread에서 동작하도록 되어있다. 런타임
+실행시 특별한 CLI option이 전달되야할 때는 <code>Flags</code> 커멘트 라인을 테스트 코드
+첫줄에 작성하여 전달할 수 있도록 한다.</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Flags: --no-warnings --expose-gc --expose-internals</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h3><ul>
+<li><strong>benchmark</strong> - 연산성능을 측정하기 위한 코드를 다루고 있다. <code>compare.js</code> 는
+비교하고자 하는 두개의 executable을 파라미터로 받으며, local build 버전과
+global에 설치된 특정 Node.js 버전을 전달함으로서 하나의 코드상에서 어떤 성능
+변화가 있는지 확인 가능하다.</li>
+</ul>
+<h4 id="벤치마크-수행결과-읽는-방법"><a href="#벤치마크-수행결과-읽는-방법" class="headerlink" title="벤치마크 수행결과 읽는 방법"></a>벤치마크 수행결과 읽는 방법</h4><p>벤치마크에서의 성능차이는 실제 변경 사항 자체보다 각 환경에 따라 발생하는 임의의
+변수들로 인해 달라질 수 있다. 그렇기 때문에 수행결과의 신뢰성 나타내는 지표를
+확인할 필요가 있다.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">                                confidence improvement accuracy (*)   (**)  (***)</span><br><span class="line">util/priority-queue.js n=100000                -2.50 %       ±4.41% ±5.87% ±7.64%</span><br><span class="line">fs/bench-writeSync.js n=100000         ***    116.41 %       ±9.35% ±12.49% ±16.36%</span><br><span class="line">fs/bench-readSync.js n=100000 type=1            0.46 %       ±6.13%  ±8.16% ±10.62%</span><br><span class="line"></span><br><span class="line">Be aware that when doing many comparisons the risk of a false-positive</span><br><span class="line">result increases. In this case, there are 1 comparisons, you can thus</span><br><span class="line">expect the following amount of false-positive results:</span><br><span class="line">  0.05 false positives, when considering a   5% risk acceptance (*, **, ***),</span><br><span class="line">  0.01 false positives, when considering a   1% risk acceptance (**, ***),</span><br><span class="line">  0.00 false positives, when considering a 0.1% risk acceptance (***)</span><br></pre></td></tr></table></figure>
+
+<p>벤치마크를 수행하면 위와 같은 결과를 확인 할 수 있다. 이때 먼저 확인해야 할 것은
+confidence다. confidence에 별표 (*, **, ***) 가 없는 모든 줄은 무시한다.</p>
+<p><code>util/priority-queue.js</code> 케이스를 해석하면 -2.50%-4.41%와 -2.50%+4.41% 사이라고
+가정할 수 있으며, 해당 내용은 5%의 확률로 틀린 결과 (False Positives) 일 수
+있다는 뜻이다. Node.js 에서는 일반적으로 별표가 2개 혹은 3개 정도의 risk
+허용범위에 있을때 개선, 퇴보 여부를 신뢰할 수 있는 데이터라고 생각하고 있다.</p>
+<h3 id="typings"><a href="#typings" class="headerlink" title="typings"></a>typings</h3><ul>
+<li><strong>typings</strong> - Node.js 코드 작성시 Type을 확인할 수 있게 하는 용도로 작성된
+<code>*.d.ts</code> 파일을 포함한다. JavaScript 자체는 타입정보를 제공하지 않지만 이곳의
+파일들이 <code>lib</code> 폴더내 모듈의 외부 인터페이스 파일들과 매칭된다. vscode 와 같은
+툴에서 개발시 타입을 확인 할 수 있고 code complition과 같은 기능을 제공할 수
+있다.</li>
+</ul>
+<h3 id="doc"><a href="#doc" class="headerlink" title="doc"></a>doc</h3><ul>
+<li><strong>doc</strong> - API 도큐먼트를 빌드하기 위한 원본 md파일과 Node.js에 기여를 할 때
+알아야 할 여러 정보를 확인 할 수 있다. API 도큐먼트 빌드를 목적으로 하기
+때문에 따라야할 convention이 존재하며 수정 후 <code>$ make format-md</code> 혹은 <code>$ tools/lint-md/lint-md.mjs</code> 이용해 lint 가능하다. API 도큐먼트의 API는 알파벳
+순으로 작성되야하며 내부&#x2F;외부 링크는 md에 직접 작성하지 않고 문서의 최하단에
+주석으로 작성되야한다. Node.js의 CLI Option이 수정되면 <code>doc/node.1</code> 의 파일을
+업데이트 한다. 그렇게 함으로서 Unix 계열의 운영체제에서 <code>man</code> 유틸을 통해
+명령어 문서에 접근할 수 있도록 한다.</li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-09-03-nodejs-overview-1/" data-id="clpjs0ssk000kgoor8800gzf3" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "Node.js 프로젝트 개요 1",
+        "image": "https://llnm.github.iohttps://i.imgur.com/oWjK2NP.png",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-09-03",
+        "dateCreated": "2023-09-03",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-09-03-nodejs-overview-1/",
+        "description": "본 문서는 그동안의 Node.js 기여 경험을 바탕으로 Node.js 프로젝트를 처음 시작하는
+사람들을 위해 간략한 개요를 전달하고자 한다. 물론 프로젝트 내용은 지속적으로
+변경되고 있으며 현 시점에서 유효한 내용이다. 그러나 어느 정도 견고하게 확정되어
+오랫동안 통용되고 있는 내용에 대해 작성하고자 한다.
+Node.js Core의 용어Node.js 에서의",
+        "wordCount": 873
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/article/2023-09-12-js-container/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            자바스크립트 컨테이너
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-08-21-v8-options/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">Node.js V8 Options</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-09-03-nodejs-overview-1/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

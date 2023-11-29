@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>Realm Class | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="2022년 Node.js 에는 Realm Class가 추가되었다. Realm은 주로 실행 환경을 정의하고 코드 간의 격리와 분리를 유지하기 위한 목적으로 사용된다. 기존 Node.js VM 모듈이 있으나 Node.js 자체 기능이고 JavaScript Object Graph가 노출될 가능성이 있다. 그에비해 새롭게 도입된 Realm은 보안측면에서 강화된">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Realm Class">
+<meta property="og:url" content="https://llnm.github.io/article/2023-11-23-realm/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="2022년 Node.js 에는 Realm Class가 추가되었다. Realm은 주로 실행 환경을 정의하고 코드 간의 격리와 분리를 유지하기 위한 목적으로 사용된다. 기존 Node.js VM 모듈이 있으나 Node.js 자체 기능이고 JavaScript Object Graph가 노출될 가능성이 있다. 그에비해 새롭게 도입된 Realm은 보안측면에서 강화된">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/NuZ8NoJ.png">
+<meta property="article:published_time" content="2023-11-22T15:30:20.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.imgur.com/NuZ8NoJ.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-11-23-realm/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-11-23-realm" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Realm Class
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-11-23-realm/" class="article-date">
+       <time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-11-23-realm/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 4.622K (3.946K/200KW)</span>
+
+                <span class="reading-time">⏱ 8 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <p><img src="https://i.imgur.com/NuZ8NoJ.png"></p>
+<p>2022년 Node.js 에는 Realm Class가 추가되었다. Realm은 주로 실행 환경을 정의하고
+코드 간의 격리와 분리를 유지하기 위한 목적으로 사용된다. 기존 Node.js VM 모듈이
+있으나 Node.js 자체 기능이고 JavaScript Object Graph가 노출될 가능성이 있다.
+그에비해 새롭게 도입된 Realm은 보안측면에서 강화된 JavaScript 실행환경을
+제공한다.</p>
+<h2 id="ECMAScript-Realm"><a href="#ECMAScript-Realm" class="headerlink" title="ECMAScript Realm"></a>ECMAScript Realm</h2><h3 id="정의와-구성요소"><a href="#정의와-구성요소" class="headerlink" title="정의와 구성요소"></a>정의와 구성요소</h3><p>ECMAScript realm은 ECMAScript 스펙상의 개념이다. 이 용어는 코드 실행 컨텍스트,
+실행 환경 및 연관된 객체의 집합을 나타내는데, 간단히 말해서 코드가 실행되고
+변수, 함수, 객체 등이 존재하는 공간이라고 볼 수 있다. 다음은 Realm의 종류이다.</p>
+<ul>
+<li><p><strong>Principal Realm:</strong> 각각의 ECMAScript 실행 환경에서 하나씩만 존재하는 특수한
+Realm. 이 Realm은 주로 코드 실행에 사용되며, 전역 객체와 스코프를 포함하는
+주 실행 컨텍스트를 정의한다.</p>
+</li>
+<li><p><strong>Synthetic Realm:</strong> JavaScript 코드에서 명시적으로 생성되는 가상의 Realm.
+주로 코드 분리 및 격리를 위해 사용된다. 각 Synthetic Realm은 자체의 전역
+객체와 스코프를 갖고 있다. 모듈 시스템과 관련이 있어, 모듈 간의 격리를
+유지하고 코드의 독립성을 증가시키는 데 사용된다.</p>
+</li>
+</ul>
+<p>ECMAScript realm은 구성 중 일부는 다음과 같다.</p>
+<ul>
+<li><strong>Global Object:</strong> 각 realm은 전역 객체를 가지고 있으며, 이 객체는 해당
+realm에 속한 모든 전역 변수와 함수를 포함함. 브라우저 환경에서는 <code>window</code>,
+Node.js에서는 <code>global</code>이 전역 객체에 해당한다.</li>
+<li><strong>Global Scope:</strong> 전역 객체의 스코프에 속하는 변수와 함수는 전역 스코프에
+존재하며 realm 전체에서 접근 가능한 범위를 의미한다.</li>
+<li><strong>Intrinsics:</strong> 각 realm은 특정한 빌트인 객체와 함수를 갖는다. <code>Object</code>나
+<code>Array</code>와 같은 객체 생성자들이 여기에 속한다.</li>
+<li><strong>Declarative Environment Records:</strong> 변수 선언 등과 같은 정보를 저장하는 객체.</li>
+<li><strong>Object Environment Records:</strong> 전역 객체 등과 같은 객체에 대한 참조를 유지하는 객체</li>
+</ul>
+<p>구성요소에 관한 더 상세한 내용은 아래 링크를 참조한다.</p>
+<ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://tc39.es/ecma262/#sec-code-realms">ECMAScript® 2024 Language Specification (tc39.es)</a></li>
+</ul>
+<h3 id="Realm-Class"><a href="#Realm-Class" class="headerlink" title="Realm Class"></a>Realm Class</h3><p>Node.js 에서 Realm 클래스는 특정 ECMAScript 영역과 연관된 JavaScript 객체 및
+함수 집합을 위한 컨테이너이다. 각 ECMAScript 영역에는 Global Object와 Intrinsics
+집합이 있다. ECMAScript 영역에는 <code>[[HostDefined]]</code> 필드가 있으며, 이 필드는
+Node.js 영역 객체를 나타낸다.</p>
+<p>모든 Realm 인스턴스는 Context에서 생성된다. Node.js 내에서 Realm 은 본 개념과
+같이 principal realm 과 synthetic realm으로 생성될 수 있다. principal realm는
+<code>Node::Environment</code>의 main Context에서 생성된다. synthetic realm은 ShadowRealm의
+Context (JavaScript API에 의해 생성됨) 에 대해 생성된다. vm.Context에는 Realm
+instance를 생성하지 않는다.</p>
+<img class="kroki" src="https://kroki.io/plantuml/svg/eNptjk1qAkEQRvd9iopLoWf82YWQjWQZED1B61SmC7urmpoyQfAUekNP4jBK0JD1e-_j63bEJWjIkIjRDgVB1KK4F4uYEUoKxK77tTZhu2tV9twsJImCaeCuR8jm3Cdm0cMKrW9Q4e3oGw8rDCn_jz74m1Q4D_Hg3cFSibdUQrrFD8jDOoZGfm7APSzAaDoCr_79b_3kjHtnkJ5mlNpo8CVi_bfL-QSzyWxeQTQr3Wtdp8S5asniflORuCuJm2t7">
+
+<h2 id="ShadowRealm을-이용한-Isolation"><a href="#ShadowRealm을-이용한-Isolation" class="headerlink" title="ShadowRealm을 이용한 Isolation"></a>ShadowRealm을 이용한 Isolation</h2><p>Node.js 가 도입한 내용은 Synthetic Realm을 이용한 객체 참조 (Object Graph) 의
+격리를 보장하는 것이다. 아래의 예를 들면 (1) 에서 vm에서 생성된 함수가 외부의
+객체를 접근할 수 있는데 이러한 참조를 Synthetic Realm을 통해 격리시킬 수 있다.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> ctx = vm.<span class="title function_">createContext</span>();</span><br><span class="line"><span class="keyword">let</span> fn = vm.<span class="title function_">runInContext</span>(<span class="string">&#x27;...&#x27;</span>, ctx);</span><br><span class="line"></span><br><span class="line"><span class="title function_">fn</span>(&#123;&#125;); <span class="comment">// &lt;= (1) vm에서 생성된 함수가 외부 `Object`에 액세스하여 메서드에 접근할수 있다.</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="ShadowRealm"><a href="#ShadowRealm" class="headerlink" title="ShadowRealm"></a>ShadowRealm</h3><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/tc39/proposal-shadowrealm">tc39&#x2F;proposal-shadowrealm: ECMAScript Proposal, specs, and reference implementation for Realms (github.com)</a></li>
+</ul>
+<p>Synthetic Realm을 생성하기 위해 Node.js는 TC39 3단계 제안상태인 ShadowRealm
+기능을 사용한다. ShadowRealm은 서로 다른 자바스크립트 실행 컨텍스트 간의 객체
+그래프 격리를 보장하고, 새로운 빌트인을 도입하여 별개의 글로벌 환경을 제공한다.
+또한 ShadowRealm은 사용하는 모듈 그래프가 외부 영역으로부터 격리되도록 보장한다.
+ShadowRealm은 모든 주요 영역 (main thread 환경 &#x2F; worker thread 환경), 다른
+ShadowRealm 및 vm.Context에서 생성할 수 있다. VM과 비교하면 ShadowRealm은 URL,
+TextEncoders 등과 같이 Node.js 에서 공통인 API가 내장되어 있다. 따라서 더 쉽게
+일반적인 JavaScript 코드를 실행할 수 있다.</p>
+<p>Node.js 에서 Realm을 계층적으로 구조한 디자인을 정리하면 다음과 같다.</p>
+<ul>
+<li><p><strong>Environment</strong> (Main thread 나 Worker threads, ECMAScript
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://tc39.es/ecma262/#sec-agents">agent</a>를 나타낸다)</p>
+<ul>
+<li>worker_contexts: worker 가 객체를 처리한다. handle objects.</li>
+<li>principal_realm: principal realm (<code>v8::Context</code>) 과 관련된 데이터</li>
+<li>synthetic_realms: Synthetic realms.</li>
+<li>time origin.</li>
+</ul>
+</li>
+<li><p><strong>Realm</strong> (realm record, principal realm, ShadowRealm, vm.Context):</p>
+<ul>
+<li>context: 실행 context.</li>
+<li>principal realm을 나타내는 플래그</li>
+<li>module map.</li>
+<li>Per-context persistent handles.</li>
+<li>… principal realm과 synthetic realm 간 공통인 데이터</li>
+</ul>
+</li>
+</ul>
+<p>각 Realm은 여러 개의 synthetic realm 을 생성할 수 있다. Realm의 도입으로
+<code>Node::Environment</code>는 이벤트 루프, Inspector 등 여러 Realm에서 공유할 수 있는
+기타 여러 가지를 소유하는 Thread&#x2F;Execution environment&#x2F;ECMAScript 에이전트의
+레코드로 해석할 수 있다.</p>
+<h3 id="Bootstrapping-순서"><a href="#Bootstrapping-순서" class="headerlink" title="Bootstrapping 순서"></a>Bootstrapping 순서</h3><h4 id="node-Environment-Principal-realm-설정"><a href="#node-Environment-Principal-realm-설정" class="headerlink" title="node::Environment Principal realm 설정"></a><code>node::Environment</code> Principal realm 설정</h4><ol>
+<li>InitializeContext<ul>
+<li>internal&#x2F;per_context&#x2F;primordials</li>
+<li>internal&#x2F;per_context&#x2F;domexception</li>
+<li>internal&#x2F;per_context&#x2F;messageport</li>
+</ul>
+</li>
+<li>Environment::RunBootstrapping<ul>
+<li>internal&#x2F;bootstrap&#x2F;loaders</li>
+<li>internal&#x2F;bootstrap&#x2F;node<ul>
+<li>node global extensions and the process object 설정</li>
+</ul>
+</li>
+<li>internal&#x2F;bootstrap&#x2F;browser<ul>
+<li>web API global extensions 설정</li>
+</ul>
+</li>
+<li>internal&#x2F;bootstrap&#x2F;switches&#x2F;{is_main_thread, is_not_main_thread}</li>
+<li>internal&#x2F;bootstrap&#x2F;switches&#x2F;{does_own_process_state, does_not_own_process_state}</li>
+</ul>
+</li>
+<li>LoadEnvironment<ul>
+<li>internal&#x2F;main&#x2F;*<ul>
+<li>internal&#x2F;bootstrap&#x2F;pre_execution</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>SyntheticEnvironment의 경우, (1) 및 (2) 단계는 <code>node::Environment</code>의 principal
+realm 와 유사하다. (2)에서 글로벌을 internal&#x2F;bootstrap&#x2F;switches로 초기화하는
+스크립트를 <code>node::Environment</code>의 principal realm과 Synthetic Realm에 대해
+분할해야 한다. (Synthetic Realm에서 특정 글로벌을 노출하지 않는 것과 같은 방식)</p>
+<h4 id="global-설정"><a href="#global-설정" class="headerlink" title="global 설정"></a>global 설정</h4><ol>
+<li><code>global</code>: internal&#x2F;bootstrap&#x2F;node<ul>
+<li>setupGlobalProxy</li>
+</ul>
+</li>
+<li><code>process</code>: internal&#x2F;bootstrap&#x2F;node</li>
+<li><code>Buffer</code>: internal&#x2F;bootstrap&#x2F;node</li>
+<li><code>Web interfaces</code>: internal&#x2F;bootstrap&#x2F;browser</li>
+</ol>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://weizmangal.com/2022/10/28/what-is-a-realm-in-js/">https://weizmangal.com/2022/10/28/what-is-a-realm-in-js/</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.salesforce.com/blogs/2022/04/introducing-shadowrealm">https://developer.salesforce.com/blogs/2022/04/introducing-shadowrealm</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/pull/44179">https://github.com/nodejs/node/pull/44179</a></li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-11-23-realm/" data-id="clpjs0sst000ygoor21qkeot7" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "Realm Class",
+        "image": "https://llnm.github.iohttps://i.imgur.com/NuZ8NoJ.png",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-11-23",
+        "dateCreated": "2023-11-23",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-11-23-realm/",
+        "description": "
+2022년 Node.js 에는 Realm Class가 추가되었다. Realm은 주로 실행 환경을 정의하고
+코드 간의 격리와 분리를 유지하기 위한 목적으로 사용된다. 기존 Node.js VM 모듈이
+있으나 Node.js 자체 기능이고 JavaScript Object Graph가 노출될 가능성이 있다.
+그에비해 새롭게 도입된 Realm은 보안측면에서 강화된 ",
+        "wordCount": 622
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/article/2023-11-24-memory-management/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            Node.js C++ Core Concept
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-11-22-javascript-runtime/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">Server JavaScript Runtime 기술 동향</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-11-23-realm/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

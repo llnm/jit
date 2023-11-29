@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>Node.js C++ Core Concept | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="JavaScript와 C++ 간의 효율적인 연결은 Node.js에서 중요한 문제 중 하나이다. 이러한 연결을 가능하기 위해 Node.js Core에서는 기본 C++ 클래스로 BaseObject 사용한다. BaseObject는 JavaScript 객체와 C++ 객체를 함께 묶는 주요 추상화 수단으로, 이를 통해 메모리 관리와 더불어 객체의 수명 주기를 관리할">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js C++ Core Concept">
+<meta property="og:url" content="https://llnm.github.io/article/2023-11-24-memory-management/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="JavaScript와 C++ 간의 효율적인 연결은 Node.js에서 중요한 문제 중 하나이다. 이러한 연결을 가능하기 위해 Node.js Core에서는 기본 C++ 클래스로 BaseObject 사용한다. BaseObject는 JavaScript 객체와 C++ 객체를 함께 묶는 주요 추상화 수단으로, 이를 통해 메모리 관리와 더불어 객체의 수명 주기를 관리할">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1">
+<meta property="article:published_time" content="2023-11-23T15:30:20.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-11-24-memory-management/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-11-24-memory-management" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Node.js C++ Core Concept
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-11-24-memory-management/" class="article-date">
+       <time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-11-24-memory-management/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 8.269K (6.042K/310KW)</span>
+
+                <span class="reading-time">⏱ 26 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <p>JavaScript와 C++ 간의 효율적인 연결은 Node.js에서 중요한 문제 중 하나이다.
+이러한 연결을 가능하기 위해 Node.js Core에서는 기본 C++ 클래스로 BaseObject
+사용한다. BaseObject는 JavaScript 객체와 C++ 객체를 함께 묶는 주요 추상화
+수단으로, 이를 통해 메모리 관리와 더불어 객체의 수명 주기를 관리할 수 있다.</p>
+<h2 id="BaseObject"><a href="#BaseObject" class="headerlink" title="BaseObject"></a>BaseObject</h2><p>Node.js에서 JavaScript 객체와 연관된 대부분의 클래스는 <code>BaseObject</code> 의
+subclass이다. BaseObject의 상위 클래스는 MemoryRainer인데, V8 Heap snapshot
+builder에서 메모리 추적을 위해 C++ 클래스에 Annotation을 할 수 있도록 하는
+Helper 클래스라고 한다. 메모리 릭에 대한 디버깅 용도로 사용할 수 있다.</p>
+<img class="kroki" src="https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1">
+
+<p>모든 BaseObject는 하나의 Realm과 하나의 <code>v8::Object</code> 와 연관된다. <code>v8::Object</code>
+클래스는 JavaScrip Object를 뜻한다. 이 클래스의 인스턴스에는 internal field라고
+하는 공간을 할당할 수 있다. 이 공간에 BaseObject의 나 하위 Class의 포인터를
+연결함으로서 JavaScript Object 와 C++ 클래스 인스턴스를 바인딩한다. Internal
+Field에 반드시 BaseObject의 서브클래스만 등록해야하는 것은 아니다.
+InternalField에 얼마나 많은 정보를 넣을지는 V8 API의 <code>SetInternalFieldCount()</code>
+를 통해 설정할 수 있다.</p>
+<figure class="highlight cc"><figcaption><span>base_object.cc</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/src/base_object.cc">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">BaseObject::<span class="built_in">BaseObject</span>(Realm* realm, Local&lt;Object&gt; object)</span><br><span class="line">    : <span class="built_in">persistent_handle_</span>(realm-&gt;<span class="built_in">isolate</span>(), object), <span class="built_in">realm_</span>(realm) &#123;</span><br><span class="line">  <span class="built_in">CHECK_EQ</span>(<span class="literal">false</span>, object.<span class="built_in">IsEmpty</span>());</span><br><span class="line">  <span class="built_in">CHECK_GE</span>(object-&gt;<span class="built_in">InternalFieldCount</span>(), BaseObject::kInternalFieldCount);</span><br><span class="line">  <span class="built_in">SetInternalFields</span>(realm-&gt;<span class="built_in">isolate_data</span>(), object, <span class="built_in">static_cast</span>&lt;<span class="type">void</span>*&gt;(<span class="keyword">this</span>));</span><br><span class="line">  realm-&gt;<span class="built_in">AddCleanupHook</span>(DeleteMe, <span class="built_in">static_cast</span>&lt;<span class="type">void</span>*&gt;(<span class="keyword">this</span>));</span><br><span class="line">  realm-&gt;<span class="built_in">modify_base_object_count</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>상기 BaseObject 생성자 함수에서 확인 할 수 있듯이 <code>SetInternalFields</code> 를 이용해
+Local 메모리 영역의 object에 BaseObject 인스턴스 자신 (this) 를 설정한다.</p>
+<h3 id="Accessing-BaseObject"><a href="#Accessing-BaseObject" class="headerlink" title="Accessing BaseObject"></a>Accessing BaseObject</h3><p>C++레벨에서 JavaScript Object로 부터 BaseObject에 대한 포인터를 얻는 방법은
+<code>Unwrap&lt;T&gt;</code> 를 사용한다. 보통 JavaScript 객체의 Function Callback의 호출되었을때
+<code>arg.This()</code> 나 <code>arg.Holder()</code> 로 부터 얻을수 있다. (args.Holder()는 Node.js
+내부의 모든 사용 사례에서 args.This()와 동일).</p>
+<p><code>Unwrap&lt;T&gt;()</code> 는 반환받는 Pointer를 미리 Casting하려는 용도의 Alias 함수이다.
+내부적으로는 <code>BaseObject::FromJSObject</code> 에 의해서 v8::Object부터 기 지정한
+internal field로 부터 Pointer를 얻어온다.</p>
+<figure class="highlight h"><figcaption><span>base_object.h</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/src/base_object.h">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ASSIGN_OR_RETURN_UNWRAP(ptr, obj, ...)                                 \</span></span><br><span class="line"><span class="meta">  do &#123;                                                                         \</span></span><br><span class="line"><span class="meta">    *ptr = static_cast<span class="string">&lt;typename std::remove_reference&lt;decltype(*ptr)&gt;</span>::type&gt;(  \</span></span><br><span class="line"><span class="meta">        BaseObject::FromJSObject(obj));                                        \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> (*ptr == nullptr) return __VA_ARGS__;                                   \</span></span><br><span class="line"><span class="meta">  &#125; while (0)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="AsyncWrap"><a href="#AsyncWrap" class="headerlink" title="AsyncWrap"></a>AsyncWrap</h3><p>AsyncHook은 비동기 요청(init&#x2F;destory)의 수명 및 해당 콜백 활동(Before&#x2F;After)을
+추적하는 기능을 제공한다. 이를 위한 추가적인 정보와 도구를 제공하는 BaseObject의
+서브클래스가 AsyncWrap이다. AsyncHook에서 명시되었던 것과 같이 어떤 Core 모듈이
+해당 Async동작을 수행했는지를 추적하기 위한 unique id가 있다.</p>
+<figure class="highlight h"><figcaption><span>async_wrap.h</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/src/async_wrap.h">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> NODE_ASYNC_NON_CRYPTO_PROVIDER_TYPES(V)                                \</span></span><br><span class="line"><span class="meta">  V(NONE)                                                                      \</span></span><br><span class="line"><span class="meta">  V(DIRHANDLE)                                                                 \</span></span><br><span class="line"><span class="meta">  V(DNSCHANNEL)                                                                \</span></span><br><span class="line"><span class="meta">  V(ELDHISTOGRAM)                                                              \</span></span><br><span class="line"><span class="meta">  V(FILEHANDLE)                                                                \</span></span><br><span class="line"><span class="meta">  V(FILEHANDLECLOSEREQ)                                                        \</span></span><br><span class="line"><span class="meta">  V(BLOBREADER)                                                                \</span></span><br><span class="line"><span class="meta">  V(FSEVENTWRAP)                                                               \</span></span><br><span class="line"><span class="meta">  V(FSREQCALLBACK)                                                             \</span></span><br><span class="line"><span class="meta">  V(FSREQPROMISE)                                                              \</span></span><br></pre></td></tr></table></figure>
+
+<p>AsyncHook을 도입할때 비동기 연산에 대한 디버깅을 쉽게하기 위함이었을것 같다.
+(TODO: 향후 History를 찾으면 다시 업데이트 하겠다.) 그러나, 최근 FS 모듈에 대한
+Async File Read를 분석해보니 Tracing을 단일 Operation 단위로 처리될 수 있도록
+고정되어있어 통합된 비동기 동작에 대한 Tracing 처리를 만들기가 어려웠다. 또,
+Node.js 에서는 <a target="_blank" rel="external nofollow noopener noreferrer" href="https://nodejs.org/api/async_hooks.html#async-hooks">공식적으로 AsyncHook에 대한 기능 사용을 권하지
+않는다</a>. 따라서, 향후 어떤
+방향이든 개선이 필요한 클래스이다.</p>
+<p><code>AsyncWrap</code> 클래스에서 중요한 함수는 <code>MakeCallback</code>을 들수 있다. Callback을
+만들기 위한 함수명 처럼 보이지만 이름과는 다르게 실제의미는 C++에서 JavaScript
+쪽으로 Callback을 부르는 용도를 한다. 참고로 이러한 JavaScript와 C++ 사이의
+Context Switching이 일어나는 경우 Cost가 많이 들기 때문에 되도록 적게 부르는
+것이 Performance 측면에서 좋다.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">StatWatcher::Callback</span><span class="params">(<span class="type">uv_fs_poll_t</span>* handle,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="type">int</span> status,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="type">const</span> <span class="type">uv_stat_t</span>* prev,</span></span></span><br><span class="line"><span class="params"><span class="function">                           <span class="type">const</span> <span class="type">uv_stat_t</span>* curr)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// StatWatcher 는 AsyncWrap의 서브 클래스</span></span><br><span class="line">  StatWatcher* wrap = <span class="built_in">ContainerOf</span>(&amp;StatWatcher::watcher_, handle);</span><br><span class="line">  Environment* env = wrap-&gt;<span class="built_in">env</span>();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Integer::New 로 할당을 하기 때문에 HandleScope를 잡아준다.</span></span><br><span class="line">  <span class="function">HandleScope <span class="title">handle_scope</span><span class="params">(env-&gt;isolate())</span></span>;</span><br><span class="line">  <span class="function">Context::Scope <span class="title">context_scope</span><span class="params">(env-&gt;context())</span></span>;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// C++에서 JavaScript 쪽으로 전달할 argument</span></span><br><span class="line">  Local&lt;Value&gt; argv[] = &#123; Integer::<span class="built_in">New</span>(env-&gt;<span class="built_in">isolate</span>(), status), arr &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// wrap 인스턴스에 연결된 객체에 프로퍼티중 onchange 에 등록된 콜백을 호출</span></span><br><span class="line">  wrap-&gt;<span class="built_in">MakeCallback</span>(env-&gt;<span class="built_in">onchange_string</span>(), <span class="built_in">arraysize</span>(argv), argv);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Libuv-Handlers"><a href="#Libuv-Handlers" class="headerlink" title="Libuv Handlers"></a>Libuv Handlers</h3><p>libuv에서 이벤트 루프와 상호작용하는 데 사용되는 타입이 있는데 handle과
+request이다.
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/deps/uv/include/uv.h">uv.h</a>를
+살펴보면 아래와 같이 정의된 타입을 확인할 수 있다.</p>
+<figure class="highlight h"><figcaption><span>uv.h</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/deps/uv/include/uv.h">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Handle types. */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_loop_s</span> <span class="title">uv_loop_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_handle_s</span> <span class="title">uv_handle_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_dir_s</span> <span class="title">uv_dir_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_stream_s</span> <span class="title">uv_stream_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_tcp_s</span> <span class="title">uv_tcp_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_udp_s</span> <span class="title">uv_udp_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_pipe_s</span> <span class="title">uv_pipe_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_tty_s</span> <span class="title">uv_tty_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_poll_s</span> <span class="title">uv_poll_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_timer_s</span> <span class="title">uv_timer_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_prepare_s</span> <span class="title">uv_prepare_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_check_s</span> <span class="title">uv_check_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_idle_s</span> <span class="title">uv_idle_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_async_s</span> <span class="title">uv_async_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_process_s</span> <span class="title">uv_process_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_fs_event_s</span> <span class="title">uv_fs_event_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_fs_poll_s</span> <span class="title">uv_fs_poll_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_signal_s</span> <span class="title">uv_signal_t</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Request types. */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_req_s</span> <span class="title">uv_req_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_getaddrinfo_s</span> <span class="title">uv_getaddrinfo_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_getnameinfo_s</span> <span class="title">uv_getnameinfo_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_shutdown_s</span> <span class="title">uv_shutdown_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_write_s</span> <span class="title">uv_write_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_connect_s</span> <span class="title">uv_connect_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_udp_send_s</span> <span class="title">uv_udp_send_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_fs_s</span> <span class="title">uv_fs_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_work_s</span> <span class="title">uv_work_t</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">uv_random_s</span> <span class="title">uv_random_t</span>;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>Handle은 파일 디스크립터, 타이머, 혹은 다른 리소스와 관련된 이벤트를
+추적하는 데 사용된다. 이벤트 루프가 이러한 이벤트를 감지하고 처리할 수 있도록
+핸들을 등록하고 관리한다.</p>
+</li>
+<li><p>Request는 비동기 작업을 수행하고 완료되었을 때 결과를 처리하는 데 사용된다.
+파일 읽기, 쓰기, 혹은 네트워크 요청과 같은 작업을 수행할 때 request를 생성하여
+완료되었을 때의 콜백을 등록한다.</p>
+</li>
+</ul>
+<h3 id="Libuv-Handle-Wrapper-Class"><a href="#Libuv-Handle-Wrapper-Class" class="headerlink" title="Libuv Handle Wrapper Class"></a>Libuv Handle Wrapper Class</h3><h4 id="HandleWrap"><a href="#HandleWrap" class="headerlink" title="HandleWrap"></a>HandleWrap</h4><p>HandleWrap은 AsyncWrap의 서브클래스이며 <code>uv_handle_t</code> 와 같은 libuv의 핸들을
+감싸서 관리하는 용도로 사용된다. <code>.ref()</code>, <code>.unref()</code>,<code>.hasRef()</code>,<code>.close()</code>
+등의 함수가 제공되는데, 함수 내부적으로 libuv의 <code>uv_ref()</code>, <code>uv_unref()</code> 와 같은
+API를 호출한다.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">HandleWrap::Ref</span><span class="params">(<span class="type">const</span> FunctionCallbackInfo&lt;Value&gt;&amp; args)</span> </span>&#123;</span><br><span class="line">  HandleWrap* wrap;</span><br><span class="line">  <span class="built_in">ASSIGN_OR_RETURN_UNWRAP</span>(&amp;wrap, args.<span class="built_in">Holder</span>());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">IsAlive</span>(wrap))</span><br><span class="line">    <span class="built_in">uv_ref</span>(wrap-&gt;<span class="built_in">GetHandle</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="ReqWrap"><a href="#ReqWrap" class="headerlink" title="ReqWrap"></a>ReqWrap</h4><p>ReqWrap AsyncWrap의 서브클래스이며 <code>uv_req_t</code> 와 같은 libuv의 request를 쉽게
+처리하는 기능을 제공한다. 예를들면 파일을 읽는 동작을 <code>uv_fs_t</code> request 핸들을
+이용하여 전달할때 요청된 동작이 끝나면 결과 Callback이 호출되도록 등록한다.</p>
+<img class="kroki" src="https://kroki.io/plantuml/svg/eNptUt1u0zAUvvdTHMRNunXZNO6mUmkUFYHKj2Bil9GJc5qYunZqHweFjZeAN-RJcDqaZhk39jn6fnx-7DfK1OhwC1oZ4rYmsI4rK55xRVuCWqMyQlz71shbhzWchfrsfg6v0NPH_BtJFp9pN0R66hj4l3ZKsfwSsy4agQ_AArXOUW4OYM8WQmr0_vgG3AmA97ihgySR-VQZBnSlnHZnMxE_D7JBBXthoxwH1NBYVcACjSSdTOAlXAyw_qkTeEPcZz1vpTx_sAXNBuZzcLTLvscs2wUKlD0pYRaabO0znsNzrcqKZYsmlnQKr5WvkWWVrFQemmUwkpU1sDZTuHalT9O0a8oPmjqOstO_NYoTaY1nkBW6E_Ctl3E2U_DqB2UMmqIVmbCNh7SFMmUfjE37NdzFVXqrG0pWNprNvqIOscmmuyZwtZ9fp124tmb7zuZxcY-_whi5qRxh8clafWvdJtpjsVSa9oSx9j_gSH4Y7ZH3MNXSEcXP67oY1tYyOfjz-xdcXly-SKFirv3V-bnWZpuWiquQp8qKvxY1DAo=">
+
+<p><code>ReqWrap::Dispatch()</code> 메서드는 이러한 동작을 일관된 방법으로 사용할 수 있게한다.</p>
+<figure class="highlight h"><figcaption><span>req_wrap-inl.h</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f8c27e61761deffe1a20425c88d74afb830c33e4/src/req_wrap-inl.h">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br></pre></td><td class="code"><pre><span class="line">template &lt;typename T&gt;</span><br><span class="line">template &lt;typename LibuvFunction, typename... Args&gt;</span><br><span class="line"><span class="type">int</span> ReqWrap&lt;T&gt;::Dispatch(LibuvFunction fn, Args... args) &#123;</span><br><span class="line">  Dispatched();</span><br><span class="line">  <span class="comment">// This expands as:</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// int err = fn(env()-&gt;event_loop(), req(), arg1, arg2, Wrapper, arg3, ...)</span></span><br><span class="line">  <span class="comment">//              ^                                       ^        ^</span></span><br><span class="line">  <span class="comment">//              |                                       |        |</span></span><br><span class="line">  <span class="comment">//              \-- Omitted if `fn` has no              |        |</span></span><br><span class="line">  <span class="comment">//                  first `uv_loop_t*` argument         |        |</span></span><br><span class="line">  <span class="comment">//                                                      |        |</span></span><br><span class="line">  <span class="comment">//        A function callback whose first argument      |        |</span></span><br><span class="line">  <span class="comment">//        matches the libuv request type is replaced ---/        |</span></span><br><span class="line">  <span class="comment">//        by the `Wrapper` method defined above                  |</span></span><br><span class="line">  <span class="comment">//                                                               |</span></span><br><span class="line">  <span class="comment">//               Other (non-function) arguments are passed  -----/</span></span><br><span class="line">  <span class="comment">//               through verbatim</span></span><br><span class="line">  <span class="type">int</span> err = CallLibuvFunction&lt;T, LibuvFunction&gt;::Call(</span><br><span class="line">      fn,</span><br><span class="line">      env()-&gt;event_loop(),</span><br><span class="line">      req(),</span><br><span class="line">      MakeLibuvRequestCallback&lt;T, Args&gt;::For(this, args)...);</span><br><span class="line">  <span class="keyword">if</span> (err &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">    ClearWeak();</span><br><span class="line">    env()-&gt;IncreaseWaitingRequestCounter();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-11-24-memory-management/" data-id="clpjs0ssu0010goor9t3z26ui" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "Node.js C++ Core Concept",
+        "image": "https://llnm.github.iohttps://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-11-24",
+        "dateCreated": "2023-11-24",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-11-24-memory-management/",
+        "description": "JavaScript와 C++ 간의 효율적인 연결은 Node.js에서 중요한 문제 중 하나이다.
+이러한 연결을 가능하기 위해 Node.js Core에서는 기본 C++ 클래스로 BaseObject
+사용한다. BaseObject는 JavaScript 객체와 C++ 객체를 함께 묶는 주요 추상화
+수단으로, 이를 통해 메모리 관리와 더불어 객체의 수명 주기를 관리할",
+        "wordCount": 2713
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/article/2023-11-26-js-object-lifetime/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            JavaScript Object의 생명주기 관리
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-11-23-realm/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">Realm Class</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-11-24-memory-management/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>Transferable 객체의 새로운 정의 방법 | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="node.js">
+    
+    <meta name="description" content="컨텍스트 간 사용자 정의 객체 전달MessagePort는 서로 다른 컨텍스트 간에 메시지를 교환하기 위한 메커니즘입니다. V8 자바스크립트 엔진은 기본 객체들의 컨텍스트 간 이동 시 직렬화와 역직렬화 방법을 제공하며, 사용자 객체에 대해서도 직렬화와 역직렬화를 위한 인터페이스를 제공합니다. 그러나 V8이 기존에 제공하던 이러한 인터페이스에는 문제점이 있어,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Transferable 객체의 새로운 정의 방법">
+<meta property="og:url" content="https://llnm.github.io/article/2023-07-24-node-transferable/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="컨텍스트 간 사용자 정의 객체 전달MessagePort는 서로 다른 컨텍스트 간에 메시지를 교환하기 위한 메커니즘입니다. V8 자바스크립트 엔진은 기본 객체들의 컨텍스트 간 이동 시 직렬화와 역직렬화 방법을 제공하며, 사용자 객체에 대해서도 직렬화와 역직렬화를 위한 인터페이스를 제공합니다. 그러나 V8이 기존에 제공하던 이러한 인터페이스에는 문제점이 있어,">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://blog.openreplay.com/images/deep-copying-objects-with-the-structuredclone-api/images/hero.png">
+<meta property="article:published_time" content="2023-07-23T15:00:00.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="node.js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.openreplay.com/images/deep-copying-objects-with-the-structuredclone-api/images/hero.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-07-24-node-transferable/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-07-24-node-transferable" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Transferable 객체의 새로운 정의 방법
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-07-24-node-transferable/" class="article-date">
+       <time datetime="2023-07-23T15:00:00.000Z" itemprop="datePublished">2023-07-24</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-07-24-node-transferable/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link-link" href="/tags/node-js/" rel="tag">node.js</a>
+    </div>
+
+                
+
+                
+
+                <span class="reading-count">📊 11.782K (9.745K/490KW)</span>
+
+                <span class="reading-time">⏱ 39 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <h2 id="컨텍스트-간-사용자-정의-객체-전달"><a href="#컨텍스트-간-사용자-정의-객체-전달" class="headerlink" title="컨텍스트 간 사용자 정의 객체 전달"></a>컨텍스트 간 사용자 정의 객체 전달</h2><p>MessagePort는 서로 다른 컨텍스트 간에 메시지를 교환하기 위한 메커니즘입니다. V8
+자바스크립트 엔진은 기본 객체들의 컨텍스트 간 이동 시 직렬화와 역직렬화 방법을
+제공하며, 사용자 객체에 대해서도 직렬화와 역직렬화를 위한 인터페이스를
+제공합니다. 그러나 V8이 기존에 제공하던 이러한 인터페이스에는 문제점이 있어, Web
+호환성 API 등의 기능을 구현할 때 성능 저하가 발생할 수 있었습니다. 이에 대한
+개선을 위한 제안이 등장하여 해당 제안을 검토해보았습니다.</p>
+<p><img src="https://blog.openreplay.com/images/deep-copying-objects-with-the-structuredclone-api/images/hero.png"></p>
+<h3 id="기존-방법"><a href="#기존-방법" class="headerlink" title="기존 방법"></a>기존 방법</h3><h4 id="Transferable-objects"><a href="#Transferable-objects" class="headerlink" title="Transferable objects"></a>Transferable objects</h4><p>Transferable object는 한 컨텍스트에서 다른 컨텍스트로 전송 가능한 리소스를
+포함하는 객체입니다. 이 객체는 전송하는 컨텍스트를 벗어난 후에는 사용할 수
+없으며, 다른 컨텍스트에서만 활용 가능합니다. 객체를 전송한 후에는 해당
+컨텍스트에서 더 이상 사용할 수 없으며, 전송된 객체를 사용하려고 시도하면 에러가
+발생합니다. 예를 들어, ArrayBuffer를 전송하는 경우 내부 버퍼가 분리되어
+전송되며, 이후에 해당 버퍼에 접근하려고 하면 에러가 발생할 수 있습니다.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> ab = <span class="keyword">new</span> <span class="title class_">ArrayBuffer</span>(<span class="number">1</span>);</span><br><span class="line">worker.<span class="title function_">postMessage</span>(ab, [ab]);</span><br><span class="line"><span class="keyword">if</span> (ab.<span class="property">byteLength</span> == <span class="number">0</span>) &#123;</span><br><span class="line">  <span class="comment">// ab is transferred.</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>예: ArrayBuffer, MessagePort, ReadableStream, WritableStream, TransformStream,
+and so on.</p>
+<h4 id="HTML-Structured-clone-algorithm"><a href="#HTML-Structured-clone-algorithm" class="headerlink" title="HTML Structured clone algorithm"></a>HTML Structured clone algorithm</h4><p>postMessage() 함수 내부에서 객체를 전송할 때에는 <a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">structured clone
+algorithm</a>를
+이 호출됩니다. 이 알고리즘이 <a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#javascript_types">지원하는
+객체</a>는
+일반 반 객체로 한정하여 처리하며, 사용자가 별도로 정의한 Class와 같은 객체는
+전송이 지원되지 않습니다.</p>
+<h4 id="Transferable-in-Node-js"><a href="#Transferable-in-Node-js" class="headerlink" title="Transferable in Node.js"></a>Transferable in Node.js</h4><p>이 알고리즘을 따라 일관된 형식으로 객체를 전송 가능하도록 만들기 위해서는 사용자
+정의 객체를 Host Object로 취급되게 해야 합니다. 객체가 Host Object로 인식되면 V8
+엔진은 사용자가 제공한 Serialize&#x2F;Deserialize 대리자를 호출합니다.</p>
+<p>문제는 Native 계층에서는 객체를 Host Object로 인식시키는 것이 가능하지만,
+JavaScript 계층에서는 이를 수행할 방법이 없었습니다. 이에 따라, Native 층에서
+JSTransferable 클래스를 생성하고 이를 JavaScript 객체 프로토타입 체인의 상위에
+등록하여 Host Object로 인식되도록 했습니다. 그리고 해당 클래스에 Private Symbol
+([kTransfer], [kClone], [kDeserialize])을 이용한 함수를 구현하여 Serialize 및
+Deserialize 작업이 해당 클래스의 대리자로 호출되도록 구현했습니다.</p>
+<p>또 다른 문제는 WritableStream 및 ReadableStream과 같은 Web API가 표준에서 다른
+클래스를 상속하도록 정의되어 있지 않아, JSTransferable로 이러한 클래스를 확장할
+수 없었습니다. 이를 해결하기 위해 makeTransferable이라는 일종의 해킹 함수를
+사용하여 상속 관계를 조작했습니다. 이 방식은 표준을 올바르게 구현하는 방법이긴
+하지만, 인스턴스가 생성될 때마다 makeTransferable 함수가 호출되기 때문에 성능
+측면에서는 좋지 않을 수 있었습니다.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">makeTransferable</span>(<span class="params">obj</span>) &#123;</span><br><span class="line">  <span class="comment">// If the object is already transferable, skip all this.</span></span><br><span class="line">  <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> <span class="title class_">JSTransferable</span>) <span class="keyword">return</span> obj;</span><br><span class="line">  <span class="keyword">const</span> inst = <span class="title class_">ReflectConstruct</span>(<span class="title class_">JSTransferable</span>, [], obj.<span class="property">constructor</span>);</span><br><span class="line">  <span class="keyword">const</span> properties = <span class="title class_">ObjectGetOwnPropertyDescriptors</span>(obj);</span><br><span class="line">  <span class="keyword">const</span> propertiesValues = <span class="title class_">ObjectValues</span>(properties);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; propertiesValues.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="comment">// We want to use null-prototype objects to not rely on globally mutable</span></span><br><span class="line">    <span class="comment">// %Object.prototype%.</span></span><br><span class="line">    <span class="title class_">ObjectSetPrototypeOf</span>(propertiesValues[i], <span class="literal">null</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title class_">ObjectDefineProperties</span>(inst, properties);</span><br><span class="line">  <span class="title class_">ObjectSetPrototypeOf</span>(inst, <span class="title class_">ObjectGetPrototypeOf</span>(obj));</span><br><span class="line">  <span class="keyword">return</span> inst;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="새로운-방법"><a href="#새로운-방법" class="headerlink" title="새로운 방법"></a>새로운 방법</h3><h4 id="markTransferMode"><a href="#markTransferMode" class="headerlink" title="markTransferMode"></a><code>markTransferMode</code></h4><p>앞에서 언급한 성능 문제를 개선하기 위해 <a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/pull/47956">새로운
+패치</a>가 적용되었습니다. JavaScript
+객체에 대해서도 Host Object로 인식할 수 있도록 하기 위해
+transfer_mode_private_symbol을 이용하는 방법이 도입되었습니다. 또한, V8 엔진에서
+기존에 Host Object를 판단하는 방식으로 EmbedderFieldCount를 확인하던 것을
+명시적으로 판단할 수 있도록 하기 위해 IsHostObject() 인터페이스가
+추가되었습니다.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// node/lib/internal/worker/js_transferable.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Mark an object as being transferable or customized cloneable in</span></span><br><span class="line"><span class="comment"> * `.postMessage()`.</span></span><br><span class="line"><span class="comment"> * This should only applied to host objects like Web API interfaces, Node.js&#x27;</span></span><br><span class="line"><span class="comment"> * built-in objects.</span></span><br><span class="line"><span class="comment"> * Objects marked as cloneable and transferable should implement the method</span></span><br><span class="line"><span class="comment"> * `@<span class="doctag">@kClone</span>` and `@<span class="doctag">@kTransfer</span>` respectively. Method `@<span class="doctag">@kDeserialize</span>` is</span></span><br><span class="line"><span class="comment"> * required to deserialize the data to a new instance.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Example implementation of a cloneable interface (assuming its located in</span></span><br><span class="line"><span class="comment"> * `internal/my_interface.js`):</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * ```</span></span><br><span class="line"><span class="comment"> * class MyInterface &#123;</span></span><br><span class="line"><span class="comment"> *   constructor(...args) &#123;</span></span><br><span class="line"><span class="comment"> *     markTransferMode(this, true); // &lt;--</span></span><br><span class="line"><span class="comment"> *     this.args = args;</span></span><br><span class="line"><span class="comment"> *   &#125;</span></span><br><span class="line"><span class="comment"> *   [kDeserialize](data) &#123;</span></span><br><span class="line"><span class="comment"> *     this.args = data.args;</span></span><br><span class="line"><span class="comment"> *   &#125;</span></span><br><span class="line"><span class="comment"> *   [kClone]() &#123;</span></span><br><span class="line"><span class="comment"> *     return &#123;</span></span><br><span class="line"><span class="comment"> *        data: &#123; args: this.args &#125;,</span></span><br><span class="line"><span class="comment"> *        deserializeInfo: &#x27;internal/my_interface:MyInterface&#x27;,</span></span><br><span class="line"><span class="comment"> *     &#125;</span></span><br><span class="line"><span class="comment"> *   &#125;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * module.exports = &#123;</span></span><br><span class="line"><span class="comment"> *   MyInterface,</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> * ```</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">object</span>&#125; obj Host objects that can be either cloned or transferred.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">boolean</span>&#125; [cloneable] if the object can be cloned and `@<span class="doctag">@kClone</span>` is</span></span><br><span class="line"><span class="comment"> *                              implemented.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">boolean</span>&#125; [transferable] if the object can be transferred and</span></span><br><span class="line"><span class="comment"> *                                 `@<span class="doctag">@kTransfer</span>` is implemented.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">markTransferMode</span>(<span class="params">obj, cloneable = <span class="literal">false</span>, transferable = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> ((<span class="keyword">typeof</span> obj !== <span class="string">&#x27;object&#x27;</span> &amp;&amp; <span class="keyword">typeof</span> obj !== <span class="string">&#x27;function&#x27;</span>) || obj === <span class="literal">null</span>)</span><br><span class="line">    <span class="keyword">return</span>; <span class="comment">// This object is a primitive and therefore already untransferable.</span></span><br><span class="line">  <span class="keyword">let</span> mode = kDisallowCloneAndTransfer;</span><br><span class="line">  <span class="keyword">if</span> (cloneable) mode |= kCloneable;</span><br><span class="line">  <span class="keyword">if</span> (transferable) mode |= kTransferable;</span><br><span class="line">  obj[transfer_mode_private_symbol] = mode; <span class="comment">// &lt;--</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/node_messaging.cc</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// static</span></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">JSTransferable::IsJSTransferable</span><span class="params">(Environment* env,</span></span></span><br><span class="line"><span class="params"><span class="function">                                      v8::Local&lt;v8::Context&gt; context,</span></span></span><br><span class="line"><span class="params"><span class="function">                                      v8::Local&lt;v8::Object&gt; object)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> object-&gt;<span class="built_in">HasPrivate</span>(context, env-&gt;<span class="built_in">transfer_mode_private_symbol</span>()) <span class="comment">// &lt;--</span></span><br><span class="line">      .<span class="built_in">ToChecked</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Provide a wrapper class created when a built-in JS classes that being</span></span><br><span class="line"><span class="comment">// transferable or cloneable by postMessage().</span></span><br><span class="line"><span class="comment">// See e.g. FileHandle in internal/fs/promises.js for an example.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">JSTransferable</span> : <span class="keyword">public</span> BaseObject &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">static</span> JSTransferable* <span class="title">Wrap</span><span class="params">(Environment* env, v8::Local&lt;v8::Object&gt; target)</span></span>;</span><br><span class="line">  <span class="function"><span class="type">static</span> <span class="type">bool</span> <span class="title">IsJSTransferable</span><span class="params">(Environment* env,</span></span></span><br><span class="line"><span class="params"><span class="function">                               v8::Local&lt;v8::Context&gt; context,</span></span></span><br><span class="line"><span class="params"><span class="function">                               v8::Local&lt;v8::Object&gt; object)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// This tells V8 how to serialize objects that it does not understand</span></span><br><span class="line"><span class="comment">// (e.g. C++ objects) into the output buffer, in a way that our own</span></span><br><span class="line"><span class="comment">// DeserializerDelegate understands how to unpack.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SerializerDelegate</span> : <span class="keyword">public</span> ValueSerializer::Delegate &#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">bool</span> <span class="title">HasCustomHostObject</span><span class="params">(Isolate* isolate)</span> <span class="keyword">override</span> </span>&#123; <span class="keyword">return</span> <span class="literal">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function">Maybe&lt;<span class="type">bool</span>&gt; <span class="title">IsHostObject</span><span class="params">(Isolate* isolate, Local&lt;Object&gt; object)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (BaseObject::<span class="built_in">IsBaseObject</span>(object)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Just</span>(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Just</span>(JSTransferable::<span class="built_in">IsJSTransferable</span>(env_, context_, object)); <span class="comment">// &lt;--</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function">Maybe&lt;<span class="type">bool</span>&gt; <span class="title">WriteHostObject</span><span class="params">(Isolate* isolate, Local&lt;Object&gt; object)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (BaseObject::<span class="built_in">IsBaseObject</span>(object)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">WriteHostObject</span>(</span><br><span class="line">          BaseObjectPtr&lt;BaseObject&gt; &#123; <span class="built_in">Unwrap</span>&lt;BaseObject&gt;(object) &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (JSTransferable::<span class="built_in">IsJSTransferable</span>(env_, context_, object)) &#123;</span><br><span class="line">      JSTransferable* js_transferable = JSTransferable::<span class="built_in">Wrap</span>(env_, object);</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">WriteHostObject</span>(BaseObjectPtr&lt;BaseObject&gt;&#123;js_transferable&#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// This is used to tell V8 how to read transferred host objects, like other</span></span><br><span class="line"><span class="comment">// `MessagePort`s and `SharedArrayBuffer`s, and make new JS objects out of them.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DeserializerDelegate</span> : <span class="keyword">public</span> ValueDeserializer::Delegate &#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="function">MaybeLocal&lt;Object&gt; <span class="title">ReadHostObject</span><span class="params">(Isolate* isolate)</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Identifying the index in the message&#x27;s BaseObject array is sufficient.</span></span><br><span class="line">    <span class="type">uint32_t</span> id;</span><br><span class="line">    <span class="keyword">if</span> (!deserializer-&gt;<span class="built_in">ReadUint32</span>(&amp;id))</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">MaybeLocal</span>&lt;Object&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (id != kNormalObject) &#123;</span><br><span class="line">      <span class="built_in">CHECK_LT</span>(id, host_objects_.<span class="built_in">size</span>());</span><br><span class="line">      Local&lt;Object&gt; object = host_objects_[id]-&gt;<span class="built_in">object</span>(isolate);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (env_-&gt;<span class="built_in">js_transferable_constructor_template</span>()-&gt;<span class="built_in">HasInstance</span>(object)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Unwrap</span>&lt;JSTransferable&gt;(object)-&gt;<span class="built_in">target</span>();</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> object;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="V8"><a href="#V8" class="headerlink" title="V8"></a>V8</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// deps/v8/include/v8-value-serializer.h</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Value serialization compatible with the HTML structured clone algorithm.</span></span><br><span class="line"><span class="comment"> * The format is backward-compatible (i.e. safe to store to disk).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">V8_EXPORT</span> ValueSerializer &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * The embedder overrides this method to enable custom host object filter</span></span><br><span class="line"><span class="comment">   * with Delegate::IsHostObject.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * This method is called at most once per serializer.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">bool</span> <span class="title">HasCustomHostObject</span><span class="params">(Isolate* isolate)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * The embedder overrides this method to determine if an JS object is a</span></span><br><span class="line"><span class="comment">   * host object and needs to be serialized by the host.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> Maybe&lt;<span class="type">bool</span>&gt; <span class="title">IsHostObject</span><span class="params">(Isolate* isolate, Local&lt;Object&gt; object)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// deps/v8/src/api/api.cc</span></span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> ValueSerializer::Delegate::<span class="built_in">HasCustomHostObject</span>(Isolate* v8_isolate) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Maybe&lt;<span class="type">bool</span>&gt; ValueSerializer::Delegate::<span class="built_in">IsHostObject</span>(Isolate* v8_isolate,</span><br><span class="line">                                                    Local&lt;Object&gt; object) &#123;</span><br><span class="line">  i::Isolate* i_isolate = <span class="built_in">reinterpret_cast</span>&lt;i::Isolate*&gt;(v8_isolate);</span><br><span class="line">  i::Handle&lt;i::JSObject&gt; js_object =</span><br><span class="line">      i::Handle&lt;i::JSObject&gt;::<span class="built_in">cast</span>(Utils::<span class="built_in">OpenHandle</span>(*object));</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Just</span>&lt;<span class="type">bool</span>&gt;(</span><br><span class="line">      i::JSObject::<span class="built_in">GetEmbedderFieldCount</span>(js_object-&gt;<span class="built_in">map</span>(i_isolate)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// deps/v8/src/objects/value-serializer.cc</span></span><br><span class="line"></span><br><span class="line">ValueSerializer::<span class="built_in">ValueSerializer</span>(Isolate* isolate,</span><br><span class="line">                                 v8::ValueSerializer::Delegate* delegate)</span><br><span class="line">    : <span class="built_in">isolate_</span>(isolate),</span><br><span class="line">      <span class="built_in">delegate_</span>(delegate),</span><br><span class="line">      <span class="built_in">zone_</span>(isolate-&gt;<span class="built_in">allocator</span>(), ZONE_NAME),</span><br><span class="line">      <span class="built_in">id_map_</span>(isolate-&gt;<span class="built_in">heap</span>(), <span class="built_in">ZoneAllocationPolicy</span>(&amp;zone_)),</span><br><span class="line">      <span class="built_in">array_buffer_transfer_map_</span>(isolate-&gt;<span class="built_in">heap</span>(),</span><br><span class="line">                                 <span class="built_in">ZoneAllocationPolicy</span>(&amp;zone_)) &#123;</span><br><span class="line">  <span class="keyword">if</span> (delegate_) &#123;</span><br><span class="line">    v8::Isolate* v8_isolate = <span class="built_in">reinterpret_cast</span>&lt;v8::Isolate*&gt;(isolate_);</span><br><span class="line">    has_custom_host_objects_ = delegate_-&gt;<span class="built_in">HasCustomHostObject</span>(v8_isolate);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 이전에 Host Object를 구별하는 방법이 EmbedderFieldCount를 확인하는 방법이었다면</span></span><br><span class="line"><span class="comment">// 명시적으로 이를 확인하는 방법을 추가하였다.</span></span><br><span class="line"></span><br><span class="line"><span class="function">Maybe&lt;<span class="type">bool</span>&gt; <span class="title">ValueSerializer::WriteJSReceiver</span><span class="params">(Handle&lt;JSReceiver&gt; receiver)</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="function">HandleScope <span class="title">scope</span><span class="params">(isolate_)</span></span>;</span><br><span class="line">  <span class="keyword">switch</span> (instance_type) &#123;</span><br><span class="line">    <span class="keyword">case</span> JS_ARRAY_TYPE:</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">WriteJSArray</span>(Handle&lt;JSArray&gt;::<span class="built_in">cast</span>(receiver));</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">case</span> JS_API_OBJECT_TYPE: &#123;</span><br><span class="line">      Handle&lt;JSObject&gt; js_object = Handle&lt;JSObject&gt;::<span class="built_in">cast</span>(receiver);</span><br><span class="line">      <span class="comment">// if (JSObject::GetEmbedderFieldCount(js_object-&gt;map(isolate_))) &#123; // -</span></span><br><span class="line">      Maybe&lt;<span class="type">bool</span>&gt; is_host_object = <span class="built_in">IsHostObject</span>(js_object);               <span class="comment">// +</span></span><br><span class="line">      <span class="keyword">if</span> (is_host_object.<span class="built_in">IsNothing</span>()) &#123;                                   <span class="comment">// +</span></span><br><span class="line">        <span class="keyword">return</span> is_host_object;                                            <span class="comment">// +</span></span><br><span class="line">      &#125;                                                                   <span class="comment">// +</span></span><br><span class="line">      <span class="keyword">if</span> (is_host_object.<span class="built_in">FromJust</span>()) &#123;                                    <span class="comment">// +</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">WriteHostObject</span>(js_object);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">WriteJSObject</span>(js_object);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Maybe&lt;<span class="type">bool</span>&gt; <span class="title">ValueSerializer::IsHostObject</span><span class="params">(Handle&lt;JSObject&gt; js_object)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!has_custom_host_objects_) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Just</span>&lt;<span class="type">bool</span>&gt;(</span><br><span class="line">        JSObject::<span class="built_in">GetEmbedderFieldCount</span>(js_object-&gt;<span class="built_in">map</span>(isolate_)));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">DCHECK_NOT_NULL</span>(delegate_);</span><br><span class="line"></span><br><span class="line">  v8::Isolate* v8_isolate = <span class="built_in">reinterpret_cast</span>&lt;v8::Isolate*&gt;(isolate_);</span><br><span class="line"></span><br><span class="line">  Maybe&lt;<span class="type">bool</span>&gt; result =</span><br><span class="line">      delegate_-&gt;<span class="built_in">IsHostObject</span>(v8_isolate, Utils::<span class="built_in">ToLocal</span>(js_object)); <span class="comment">// &lt;--</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">RETURN_VALUE_IF_SCHEDULED_EXCEPTION</span>(isolate_, <span class="built_in">Nothing</span>&lt;<span class="type">bool</span>&gt;());</span><br><span class="line">  <span class="built_in">DCHECK</span>(!result.<span class="built_in">IsNothing</span>());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">V8_UNLIKELY</span>(out_of_memory_)) <span class="keyword">return</span> <span class="built_in">ThrowIfOutOfMemory</span>();</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/pull/47956">make JSTransferables based on private
+symbols</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/issues/37080">Userland transferable&#x2F;cloneable
+objects</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/undici/issues/1203#issuecomment-1101482629">makeTransferable</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/performance/issues/82#issuecomment-1613378037">https://github.com/nodejs/performance/issues/82#issuecomment-1613378037</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.chrome.com/blog/transferable-objects-lightning-fast/">https://developer.chrome.com/blog/transferable-objects-lightning-fast/</a></li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-07-24-node-transferable/" data-id="clpjs0ssb0006gooraymkdcfh" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "Transferable 객체의 새로운 정의 방법",
+        "image": "https://llnm.github.iohttps://blog.openreplay.com/images/deep-copying-objects-with-the-structuredclone-api/images/hero.png",
+        "keywords": "node.js",
+        "genre": "article",
+        "datePublished": "2023-07-24",
+        "dateCreated": "2023-07-24",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-07-24-node-transferable/",
+        "description": "컨텍스트 간 사용자 정의 객체 전달MessagePort는 서로 다른 컨텍스트 간에 메시지를 교환하기 위한 메커니즘입니다. V8
+자바스크립트 엔진은 기본 객체들의 컨텍스트 간 이동 시 직렬화와 역직렬화 방법을
+제공하며, 사용자 객체에 대해서도 직렬화와 역직렬화를 위한 인터페이스를
+제공합니다. 그러나 V8이 기존에 제공하던 이러한 인터페이스에는 문제점이 있어,",
+        "wordCount": 2890
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/talk/2023-07-29-mechanism-over-policy/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            Mechanism over Policy
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-07-16-automated-semver/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">Automated semantic versioning based on commits.</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-07-24-node-transferable/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

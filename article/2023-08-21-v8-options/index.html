@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>Node.js V8 Options | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="Node.js V8 Build Option Node.js는 기본적으로 JavaScript Runtime이다. JavaScript Runtime은 JavaScript를 실행시킬수 있는 환경을 뜻하며 코드를 해석하고 실행하는 핵심 역할을 담당한다. Node.js 에서 여러 JavaScript 엔진중에서 구글이 개발한 V8 엔진을 사용하고 있는데, Node.js">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js V8 Options">
+<meta property="og:url" content="https://llnm.github.io/article/2023-08-21-v8-options/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="Node.js V8 Build Option Node.js는 기본적으로 JavaScript Runtime이다. JavaScript Runtime은 JavaScript를 실행시킬수 있는 환경을 뜻하며 코드를 해석하고 실행하는 핵심 역할을 담당한다. Node.js 에서 여러 JavaScript 엔진중에서 구글이 개발한 V8 엔진을 사용하고 있는데, Node.js">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://v8.dev/_img/improved-code-caching/warm-hot-run-1.png">
+<meta property="article:published_time" content="2023-08-21T05:09:42.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://v8.dev/_img/improved-code-caching/warm-hot-run-1.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-08-21-v8-options/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-08-21-v8-options" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Node.js V8 Options
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-08-21-v8-options/" class="article-date">
+       <time datetime="2023-08-21T05:09:42.000Z" itemprop="datePublished">2023-08-21</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-08-21-v8-options/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 3.879K (3.336K/170KW)</span>
+
+                <span class="reading-time">⏱ 11 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <h2 id="Node-js-V8-Build-Option"><a href="#Node-js-V8-Build-Option" class="headerlink" title="Node.js V8 Build Option"></a>Node.js V8 Build Option</h2><p><img src="https://v8.dev/_img/improved-code-caching/warm-hot-run-1.png"></p>
+<p>Node.js는 기본적으로 JavaScript Runtime이다. JavaScript Runtime은 JavaScript를
+실행시킬수 있는 환경을 뜻하며 코드를 해석하고 실행하는 핵심 역할을 담당한다.
+Node.js 에서 여러 JavaScript 엔진중에서 구글이 개발한 V8 엔진을 사용하고 있는데,
+Node.js 빌드시 V8 Option을 전달하여 Customization 할 수 있다.</p>
+<p>V8 Option은 Node.js Core코드와 직접적으로 연관이 있는 제어 코드 외 <code>deps/v8</code>
+에서 library 빌드 시 전달할 수 있는 옵션으로 나뉜다.</p>
+<h3 id="Node-js-Options"><a href="#Node-js-Options" class="headerlink" title="Node.js Options"></a>Node.js Options</h3><h3 id="Lite-Mode"><a href="#Lite-Mode" class="headerlink" title="Lite Mode"></a>Lite Mode</h3><p>V8은 메모리 사용량 보다 성능 기본적으로 초점을 맞추고 있다. 그러한 개발 방향과
+다소 반대의 상황에서 사용할 수 있는 옵션으로 기본적인 메모리 사용량을 줄이고 JIT
+(Just-In-Time) 컴파일을 꺼서 메모리 소비를 더욱 줄인다.</p>
+<p>JIT(Just-In-Time) 컴파일은 프로그램을 실행하는 동안 실제로 필요한 코드 부분만
+컴파일하는 기술이다. 일반적으로 JavaScript 코드는 한 줄씩 인터프리터에 의해
+해석되지만, JIT 컴파일러는 자주 사용되는 함수나 루프 같은 핵심 코드를 미리
+컴파일하고 최적화하여 실행 속도를 높인다.</p>
+<p>관련 Configuration</p>
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">789</span><br><span class="line">790</span><br><span class="line">791</span><br><span class="line">792</span><br><span class="line">793</span><br><span class="line">794</span><br><span class="line">795</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--v8-lite-mode&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;v8_lite_mode&#x27;</span>,</span><br><span class="line">    default=<span class="literal">False</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;compile V8 in lite mode for constrained environments (lowers V8 &#x27;</span>+</span><br><span class="line">         <span class="string">&#x27;memory footprint, but also implies no just-in-time compilation &#x27;</span> +</span><br><span class="line">         <span class="string">&#x27;support, thus much slower execution)&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://v8.dev/blog/v8-lite">https://v8.dev/blog/v8-lite</a></li>
+</ul>
+<h4 id="CodeCache-기능"><a href="#CodeCache-기능" class="headerlink" title="CodeCache 기능"></a>CodeCache 기능</h4><p>JavaScript 엔진은 CodeCache 기능을 제공한다. CodeCache는 컴파일된 코드를 캐시로
+저장하는 공간이며, 반복적으로 사용되는 코드를 저장해두어 빠른 실행을 가능하게
+한다. 이는 웹 애플리케이션의 성능을 향상시키는 데 도움이 된다.</p>
+<p>관련 Configuration</p>
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">626</span><br><span class="line">627</span><br><span class="line">628</span><br><span class="line">629</span><br><span class="line">630</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--without-node-code-cache&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;without_node_code_cache&#x27;</span>,</span><br><span class="line">    default=<span class="literal">None</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;Turn off V8 Code cache integration.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Snapshot"><a href="#Snapshot" class="headerlink" title="Snapshot"></a>Snapshot</h4><p>Snapshot은 초기 런타임 상태를 저장하고, 이를 나중에 다시 불러와 재사용할 수 있게
+해준다. 이로써 애플리케이션의 시작 시간을 단축시키고 초기 로딩 시간을 최적화할
+수 있다.</p>
+<p>관련 Configuration</p>
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">612</span><br><span class="line">613</span><br><span class="line">614</span><br><span class="line">615</span><br><span class="line">616</span><br><span class="line">617</span><br><span class="line">618</span><br><span class="line">619</span><br><span class="line">620</span><br><span class="line">621</span><br><span class="line">622</span><br><span class="line">623</span><br><span class="line">624</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--write-snapshot-as-array-literals&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;write_snapshot_as_array_literals&#x27;</span>,</span><br><span class="line">    default=<span class="literal">None</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;Write the snapshot data as array literals for readability.&#x27;</span></span><br><span class="line">         <span class="string">&#x27;By default the snapshot data may be written as string literals on some &#x27;</span></span><br><span class="line">         <span class="string">&#x27;platforms to speed up compilation.&#x27;</span>)</span><br><span class="line"></span><br><span class="line">parser.add_argument(<span class="string">&#x27;--without-node-snapshot&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;without_node_snapshot&#x27;</span>,</span><br><span class="line">    default=<span class="literal">None</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;Turn off V8 snapshot integration. Currently experimental.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">823</span><br><span class="line">824</span><br><span class="line">825</span><br><span class="line">826</span><br><span class="line">827</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--v8-enable-snapshot-compression&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;v8_enable_snapshot_compression&#x27;</span>,</span><br><span class="line">    default=<span class="literal">None</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;Enable the built-in snapshot compression in V8.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Pointer-Compression"><a href="#Pointer-Compression" class="headerlink" title="Pointer Compression"></a>Pointer Compression</h4><p>V8 엔진이 JavaScript 객체에 대한 포인터를 저장할 때 사용되는 메모리를 줄이기
+위한 최적화 기능이다. 기본적으로 V8는 64비트 포인터를 사용하여 객체를
+가리키지만, Pointer Compression을 활성화하면 객체 포인터를 더 작은 크기
+(32비트)의 포인터로 압축하여 메모리를 절약할 수 있다. 작은 포인터 크기는 환경에
+따라서 CPU 캐시에서 객체를 로드하는 데 더 효율적일 수 있으며, 이로 인해 더 빠른
+실행 속도를 얻을 수도 있다. 다만 이 옵션을 크면 주소공간이 4GB로 제한되며 따라서
+max heap 크기도 그 크기로 한정된다.</p>
+<p>관련 Configuration</p>
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">488</span><br><span class="line">489</span><br><span class="line">490</span><br><span class="line">491</span><br><span class="line">492</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--experimental-enable-pointer-compression&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store_true&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;enable_pointer_compression&#x27;</span>,</span><br><span class="line">    default=<span class="literal">None</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;[Experimental] Enable V8 pointer compression (limits max heap to 4GB and breaks ABI compatibility)&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Runtime-V8-Options"><a href="#Runtime-V8-Options" class="headerlink" title="Runtime V8 Options"></a>Runtime V8 Options</h4><p>Node.js 실행시점에도 V8 동작에 관한 세부 설정을 할 수 있는데 이러한 옵션을 빌드
+시점에 default로 적용할 수 도 있다. 전체옵션을 보고싶다면 아래와 같이 실행하면
+된다.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node --v8-options</span><br></pre></td></tr></table></figure>
+
+<p>관련 Configuration</p>
+<figure class="highlight py"><figcaption><span>configure.py</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/f10928f92636ee67f7b5ef3737523f428fb5ca00/configure.py">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">500</span><br><span class="line">501</span><br><span class="line">502</span><br><span class="line">503</span><br></pre></td><td class="code"><pre><span class="line">parser.add_argument(<span class="string">&#x27;--v8-options&#x27;</span>,</span><br><span class="line">    action=<span class="string">&#x27;store&#x27;</span>,</span><br><span class="line">    dest=<span class="string">&#x27;v8_options&#x27;</span>,</span><br><span class="line">    <span class="built_in">help</span>=<span class="string">&#x27;v8 options to pass, see `node --v8-options` for examples.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://v8.dev/blog/improved-code-caching">https://v8.dev/blog/improved-code-caching</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://www.geeksforgeeks.org/what-is-the-relationship-between-node-js-and-v8/">https://www.geeksforgeeks.org/what-is-the-relationship-between-node-js-and-v8/</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://joyeecheung.github.io/blog/2022/04/14/fixing-snapshot-support-of-class-fields-in-v8/">https://joyeecheung.github.io/blog/2022/04/14/fixing-snapshot-support-of-class-fields-in-v8/</a></li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-08-21-v8-options/" data-id="clpjs0ssj000igoorgngeb2nb" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "Node.js V8 Options",
+        "image": "https://llnm.github.iohttps://v8.dev/_img/improved-code-caching/warm-hot-run-1.png",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-08-21",
+        "dateCreated": "2023-08-21",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-08-21-v8-options/",
+        "description": "Node.js V8 Build Option
+Node.js는 기본적으로 JavaScript Runtime이다. JavaScript Runtime은 JavaScript를
+실행시킬수 있는 환경을 뜻하며 코드를 해석하고 실행하는 핵심 역할을 담당한다.
+Node.js 에서 여러 JavaScript 엔진중에서 구글이 개발한 V8 엔진을 사용하고 있는데,
+Node.js",
+        "wordCount": 693
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/article/2023-09-03-nodejs-overview-1/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            Node.js 프로젝트 개요 1
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-08-14-fast-api-2/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">V8 Fast API에 대하여 2</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-08-21-v8-options/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

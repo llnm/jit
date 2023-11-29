@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>structuredClone in native | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="structuredClone은 객체를 deep copy 하는 API 이다. 만약 structuredClone 가 Node.js의 JavaScript 영역에 구현되어있다면 Native 영역으로 구현부를 이동시킬때 유의미한 성능향상이 있을 것이다. src: implement structuredClone 은 그런면에서 흥미로운 내용일 것이라 생각하고 리뷰해보았다">
+<meta property="og:type" content="article">
+<meta property="og:title" content="structuredClone in native">
+<meta property="og:url" content="https://llnm.github.io/article/2023-10-28-structure-clone-native/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="structuredClone은 객체를 deep copy 하는 API 이다. 만약 structuredClone 가 Node.js의 JavaScript 영역에 구현되어있다면 Native 영역으로 구현부를 이동시킬때 유의미한 성능향상이 있을 것이다. src: implement structuredClone 은 그런면에서 흥미로운 내용일 것이라 생각하고 리뷰해보았다">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/O7GVcaQ.png">
+<meta property="article:published_time" content="2023-10-27T15:13:00.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.imgur.com/O7GVcaQ.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-10-28-structure-clone-native/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-10-28-structure-clone-native" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        structuredClone in native
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-10-28-structure-clone-native/" class="article-date">
+       <time datetime="2023-10-27T15:13:00.000Z" itemprop="datePublished">2023-10-28</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-10-28-structure-clone-native/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 5.12K (4.205K/220KW)</span>
+
+                <span class="reading-time">⏱ 14 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <p>structuredClone은 객체를 deep copy 하는 API 이다. 만약 structuredClone 가
+Node.js의 JavaScript 영역에 구현되어있다면 Native 영역으로 구현부를 이동시킬때
+유의미한 성능향상이 있을 것이다. <a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/pull/50330">src: implement
+structuredClone</a> 은 그런면에서
+흥미로운 내용일 것이라 생각하고 리뷰해보았다.</p>
+<p><img src="https://i.imgur.com/O7GVcaQ.png"></p>
+<h2 id="기존-구현"><a href="#기존-구현" class="headerlink" title="기존 구현"></a>기존 구현</h2><p>Web Platform API인 structuredClone은 원래 global 영역에 노출되어있지 않은
+API였다. Deep Copy를 JavaScript 에서 제공하지 않지만, Web Spec. 인
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel">MessageChannel</a>
+이나 IndexedDB 같은 기능을 위해선 Object의 직렬화&#x2F;역직렬화 기능은 필요할 수 밖에
+없었다. 예를들어 Web Worker에서 한 Thread에서 다른 Thread로 전달하는 것은 서로
+다른 JavaScript Context로 데이터를 넘기는 일이기 때문에 Deep Copy 기능이
+필요하다.</p>
+<p>Node.js 에는 structuredClone API 앞서
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel">MessageChannel</a>이
+구현되어 있었는데 이를 활용한 hack 을 이용하면 structuredClone의 결과와 같은
+Deep Copy를 구현할 수 있었다. 그래서 기존에는 아래와 같은 방식으로 구현되었었다.</p>
+<figure class="highlight js"><figcaption><span>structured_clone.js</span><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/blob/b6bced8e848c9e64964ef8d91785f4ccc7523a20/lib/internal/structured_clone.js">link</a></figcaption><table><tr><td class="gutter"><pre><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">structuredClone</span>(<span class="params">value, options = <span class="literal">undefined</span></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="variable language_">arguments</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title function_">ERR_MISSING_ARGS</span>(<span class="string">&#x27;value&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// <span class="doctag">TODO:</span> Improve this with a more efficient solution that avoids</span></span><br><span class="line">  <span class="comment">// instantiating a MessageChannel</span></span><br><span class="line">  channel ??= <span class="keyword">new</span> <span class="title class_">MessageChannel</span>();</span><br><span class="line">  channel.<span class="property">port1</span>.<span class="title function_">unref</span>();</span><br><span class="line">  channel.<span class="property">port2</span>.<span class="title function_">unref</span>();</span><br><span class="line">  channel.<span class="property">port1</span>.<span class="title function_">postMessage</span>(value, options?.<span class="property">transfer</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">receiveMessageOnPort</span>(channel.<span class="property">port2</span>).<span class="property">message</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>아이디어는 MessageChannel의 인스턴스를 생성하고 해당 channel로 데이터를
+전달함으로서 그 과정에서 수행되는 structuredCloned 을 이용하는 것이다.</p>
+<h3 id="MessageChannel-내부"><a href="#MessageChannel-내부" class="headerlink" title="MessageChannel 내부"></a>MessageChannel 내부</h3><p><code>MessageChannel::postMessage(value[,&#123; transfer &#125;])</code> 내부 구현에서
+structuredClone의 구현은 아래와 같은 두개의 Step을 통해 구현된다.</p>
+<ul>
+<li>Step 1. clone 하거나 transfer 해야할 객체를 리스트업 한다.</li>
+<li>Step 2. 직렬화&#x2F;역직렬화 과정을 수행한다.</li>
+</ul>
+<p>기존 구현의 TODO로 기술되어있듯이 원 저자 역시 structuredClone을 위해
+MessageChannel을 사용하는 것이 그렇게 효율적인 방법은 아니라는 것을 기술해
+두었다. PR Author는 <code>MessageChannel::postMessage()</code>에서 상기 Step 1 동작을
+수행하는 부분을 직접 JavaScript 영역에서 호출하면 <code>MessageChannel</code>을 이용하지
+않을 수 있을 것이라 생각했다. 현재 코드 상에서 큰 리팩토링을 우려했지만
+생각보다는 적은 수고로 가능한 내용이었다.</p>
+<ul>
+<li>As-Is: structuredClone (JS)<ul>
+<li>... <code>(1)</code> new <code>MessageChannel</code></li>
+<li><code>MessageChannel::postMessage</code> (C++)<ul>
+<li>... <code>(2)</code> MessageChannel 구현</li>
+<li>Step 1</li>
+<li>Step 2</li>
+<li>... <code>(3)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>위는 기존 구현부를 단순화한 내용이다. PR의 아이디어는 <code>MessageChannel</code> 와 관련된 위의
+(1), (2), (3) 해당하는 부분을 제거한다. Step 1에 해당하는 부분을 <code>MessageChannel</code> 와
+공유하고 Step 2 구현을 구현하여 structuredClone의 구현체를 단순화 시키는 내용이다.</p>
+<h4 id="Step-1"><a href="#Step-1" class="headerlink" title="Step 1"></a>Step 1</h4><p>transfer를 해야할 객체의 리스트업을 다음 함수 GetTransferList로 분리한 뒤 새로
+native side에서 구현한 structuredClone과 기존
+<code>MessageChannel::postMessage()</code>에서 공동으로 사용하도록 한다.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">GetTransferList</span><span class="params">(Environment* env,</span></span></span><br><span class="line"><span class="params"><span class="function">                     Local&lt;Context&gt; context,</span></span></span><br><span class="line"><span class="params"><span class="function">                     Local&lt;Value&gt; transfer_list_v,</span></span></span><br><span class="line"><span class="params"><span class="function">                     TransferList* transfer_list_out)</span> </span>&#123;</span><br><span class="line">                     ...</span><br><span class="line">                     &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-2"><a href="#Step-2" class="headerlink" title="Step 2"></a>Step 2</h4><p>이후 직렬화&#x2F;역직렬화를 수행해 clone을 수행한다.</p>
+<ul>
+<li>To-Be: structuredClone (JS)<ul>
+<li><code>internalBinding(&#39;messaging&#39;).structuredClone</code> (C++)<ul>
+<li>Step 1</li>
+<li>Step 2</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Local</span>&lt;<span class="title class_">Value</span>&gt; value = args[<span class="number">0</span>];</span><br><span class="line"><span class="title class_">TransferList</span> transfer_list;</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">// step 1</span></span><br><span class="line"><span class="title class_">GetTransferList</span>(env, context, transfer_list_v, &amp;transfer_list)</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">// step 2</span></span><br><span class="line"><span class="title class_">Local</span>&lt;<span class="title class_">Value</span>&gt; result;</span><br><span class="line"><span class="keyword">if</span> (msg-&gt;<span class="title class_">Serialize</span>(env, context, value, transfer_list, <span class="title class_">Local</span>&lt;<span class="title class_">Object</span>&gt;())</span><br><span class="line">        .<span class="title class_">IsNothing</span>() ||</span><br><span class="line">    !msg-&gt;<span class="title class_">Deserialize</span>(env, context, nullptr).<span class="title class_">ToLocal</span>(&amp;result)) &#123;</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-3"><a href="#Step-3" class="headerlink" title="Step 3"></a>Step 3</h4><p>직렬화&#x2F;역질화 의 내부 알고리즘은 V8 내부에서 수행하며, <code>src/node_messaging.cc</code>
+에는 Node.js에서 정의한 객체에 대한 clonning을 어떻게 할지가 정의되어 있다.</p>
+<h2 id="성능의-향상"><a href="#성능의-향상" class="headerlink" title="성능의 향상?"></a>성능의 향상?</h2><p>이 PR의 제목만 보면 JavaScript side에서 수행하는 Cloning을 native side로
+이동시키면서 상당한 성능의 향상이 있을 것이란 생각이 들었다. 그러나 실제로는
+<code>MessageChannel</code>의 instance 를 생성하는 부하만 줄이는 것이며 실제로 Cloning되는
+메카니즘은 그대로이다. 그래서 structuredClone 자체의 성능은 더 개선할 내용이 있는 것이다.</p>
+<p><code>GetTransferList</code> 안은 <code>ReadIterable</code>이 구현되어있으며 transfer 목록을 순회하기
+위해 iterator를 호출한다. 이 과정에서 JavaScript Side와 Native Side간 Context
+Switching 이 일어나 속도가 저하된다. 이 부분은 여전히 TODO로 남겨졌다.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> Maybe&lt;<span class="type">bool</span>&gt; <span class="title">ReadIterable</span><span class="params">(Environment* env,</span></span></span><br><span class="line"><span class="params"><span class="function">                                Local&lt;Context&gt; context,</span></span></span><br><span class="line"><span class="params"><span class="function">                                <span class="comment">// NOLINTNEXTLINE(runtime/references)</span></span></span></span><br><span class="line"><span class="params"><span class="function">                                TransferList&amp; transfer_list,</span></span></span><br><span class="line"><span class="params"><span class="function">                                Local&lt;Value&gt; object)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!object-&gt;<span class="built_in">IsObject</span>()) <span class="keyword">return</span> <span class="built_in">Just</span>(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">  ....</span><br><span class="line"></span><br><span class="line">  std::vector&lt;Local&lt;Value&gt;&gt; entries;</span><br><span class="line">  <span class="keyword">while</span> (env-&gt;<span class="built_in">can_call_into_js</span>()) &#123;</span><br><span class="line">    Local&lt;Value&gt; result;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 이곳의 while 문에서 C++ -&gt; JavaScript 호출이 되며 성능 저하가 일어난다.</span></span><br><span class="line">    <span class="keyword">if</span> (!next.<span class="built_in">As</span>&lt;Function&gt;()-&gt;<span class="built_in">Call</span>(context, iterator, <span class="number">0</span>, <span class="literal">nullptr</span>)</span><br><span class="line">        .<span class="built_in">ToLocal</span>(&amp;result)) <span class="keyword">return</span> <span class="built_in">Nothing</span>&lt;<span class="type">bool</span>&gt;();</span><br><span class="line"></span><br><span class="line">  transfer_list.<span class="built_in">AllocateSufficientStorage</span>(entries.<span class="built_in">size</span>());</span><br><span class="line">  std::<span class="built_in">copy</span>(entries.<span class="built_in">begin</span>(), entries.<span class="built_in">end</span>(), &amp;transfer_list[<span class="number">0</span>]);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Just</span>(<span class="literal">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="결과"><a href="#결과" class="headerlink" title="결과"></a>결과</h2><p>structuredClone을 위해 MessageChannel instance가 생성되는 시간을 줄이고 기존에
+JavaScript side에서 구현되어 snapshot에 포함되지 못했던 structuredClone 기능을
+snapshot에 포함할 수 있었던 것이 해당 PR의 의미라고 할 수 있다.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// snapshot 생성시 포함되도록 등록</span></span><br><span class="line">registry-&gt;<span class="title class_">Register</span>(<span class="title class_">StructuredClone</span>);</span><br></pre></td></tr></table></figure>
+
+<p>한가지 의문은 Web Spec.에 의하면 trasfer 는 An <em>array</em> of <code>transferable objects</code>
+that will be moved rather than cloned to the returned object. 이라고 정의
+되어있는데 왜 iterable로서 순회해야하는지는 의문이다. Array 객체로서 순회하는
+것은 V8 API로 존재하고 있기 때문에 iteratable interface에 따라 <code>next()</code> 호출을
+해주지 않아도 구현이 가능할 것 같은데 말이다. 아무튼, iterable로 처리되야한다면
+상기 언급했던 Step 1를 JavaScript 쪽에서 목록을 만들고 C++ 로 넘길 수 있으면 TODO로
+남겨진 성능 저하를 개선 할 수 있을 것이라 생각된다.</p>
+<h2 id="관련-컨텐츠"><a href="#관련-컨텐츠" class="headerlink" title="관련 컨텐츠"></a>관련 컨텐츠</h2><ul>
+<li><a href="../2023-10-11-iteration-protocols">Iteration protocols</a></li>
+<li><a href="../2023-10-14-structure-clone">structureClone</a></li>
+</ul>
+<h2 id="참고"><a href="#참고" class="headerlink" title="참고"></a>참고</h2><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/nodejs/node/pull/50330">https://github.com/nodejs/node/pull/50330</a></li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-10-28-structure-clone-native/" data-id="clpjs0ssq000ugoor3v0z51m8" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "structuredClone in native",
+        "image": "https://llnm.github.iohttps://i.imgur.com/O7GVcaQ.png",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-10-28",
+        "dateCreated": "2023-10-28",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-10-28-structure-clone-native/",
+        "description": "structuredClone은 객체를 deep copy 하는 API 이다. 만약 structuredClone 가
+Node.js의 JavaScript 영역에 구현되어있다면 Native 영역으로 구현부를 이동시킬때
+유의미한 성능향상이 있을 것이다. src: implement
+structuredClone 은 그런면에서
+흥미로운 내용일 것이라 생각하고 리뷰해보았다",
+        "wordCount": 1125
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/article/2023-11-22-javascript-runtime/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">newer</strong>
+        <p class="article-nav-title">
+        
+            Server JavaScript Runtime 기술 동향
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/article/2023-10-14-structure-clone/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">structureClone</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-10-28-structure-clone-native/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    
+
+    
+    <title>WebAssembly 기술 동향 | DAEYEON JIT</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content>
+    
+    <meta name="description" content="WebAssembly (WASM)웹어셈블리(WebAssembly 또는 Wasm)는 다양한 프로그래밍 언어와 많은 실행 환경 사이의 중간 계층으로, 30여 가지 이상의 언어로 작성된 코드를 .wasm 파일로 컴파일한 다음 브라우저나 다른 실행 환경에서 실행할 수 있다. 원래 웹에서 코드 실행 속도를 높이기 위해 개발되었지만 이제는 브라우저 이외의 다양한 환경">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebAssembly 기술 동향">
+<meta property="og:url" content="https://llnm.github.io/article/2023-11-27-wasm/index.html">
+<meta property="og:site_name" content="DAEYEON JIT">
+<meta property="og:description" content="WebAssembly (WASM)웹어셈블리(WebAssembly 또는 Wasm)는 다양한 프로그래밍 언어와 많은 실행 환경 사이의 중간 계층으로, 30여 가지 이상의 언어로 작성된 코드를 .wasm 파일로 컴파일한 다음 브라우저나 다른 실행 환경에서 실행할 수 있다. 원래 웹에서 코드 실행 속도를 높이기 위해 개발되었지만 이제는 브라우저 이외의 다양한 환경">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png">
+<meta property="article:published_time" content="2023-11-26T15:30:20.000Z">
+<meta property="article:modified_time" content="2023-11-29T13:01:56.524Z">
+<meta property="article:author" content="Daeyeon Jeong">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png">
+    <link rel="canonical" href="https://llnm.github.io/article/2023-11-27-wasm/">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="DAEYEON JIT" type="application/atom+xml">
+    
+
+    
+        <link rel="icon" href="/css/images/id/favicon.ico">
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <!-- daeyeon -->
+    <!-- 
+<link rel="stylesheet" href="https://webfontworld.github.io/score/SCoreDream.css">
+ -->
+    
+<link rel="stylesheet" href="https://unpkg.com/@kfonts/nexon-lv2-gothic/index.css">
+
+    <!-- 
+<link rel="stylesheet" href="https://cdn.rawgit.com/innks/NanumSquareRound/master/nanumsquareround.css">
+ -->
+    <!-- 
+<link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosanskr.css">
+ -->
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z122W496D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Z122W496D6');
+</script>
+<!-- End Google Analytics -->
+
+    
+    
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                    <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/article/">article</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/talk/">talk</a></li></ul>
+                                
+                                <li class="main-nav-list-item">
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search">
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something...">
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/article/">article</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-article-2023-11-27-wasm" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        WebAssembly 기술 동향
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+  <div class="article-date">
+    <i class="fa fa-calendar"></i>
+    <a href="/article/2023-11-27-wasm/" class="article-date">
+       <time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time>
+    </a>
+  </div>
+
+<!--
+
+<div class="article-date">
+  <i class="fa fa-calendar-plus-o"></i>
+  <a href="/article/2023-11-27-wasm/" class="article-date">
+     <time datetime="2023-11-29T13:01:56.524Z" itemprop="dateModified">2023-11-29</time>
+  </a>
+</div>
+
+-->
+
+                
+
+                
+                
+
+                
+
+                <span class="reading-count">📊 4.82K (4.017K/210KW)</span>
+
+                <span class="reading-time">⏱ 8 mins</span>
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            
+
+            
+
+            
+
+            <h2 id="WebAssembly-WASM"><a href="#WebAssembly-WASM" class="headerlink" title="WebAssembly (WASM)"></a>WebAssembly (WASM)</h2><p>웹어셈블리(WebAssembly 또는 Wasm)는 다양한 프로그래밍 언어와 많은 실행 환경
+사이의 중간 계층으로, 30여 가지 이상의 언어로 작성된 코드를 .wasm 파일로
+컴파일한 다음 브라우저나 다른 실행 환경에서 실행할 수 있다. 원래 웹에서 코드
+실행 속도를 높이기 위해 개발되었지만 이제는 브라우저 이외의 다양한 환경에서도
+실행할 수 있다.</p>
+<p><img src="https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png"></p>
+<p>WebAssembly는 발표된 시점에 비해 널리 사용되지 않았는데, 우선 언어 간 상호
+호환성, 부족한 개발자 경험이 문제가 있었다. 또한 WebAssembly라는 이름 자체가
+웹이나 어셈블리에 국한되지 않는데, Web이란 키워드를 쓰면서 잘못된 인상을 주었다.</p>
+<p>이에 ’19년 모질라, 레드햇, 인텔, Fastly. 등의 회사들이 커뮤니티를 (Bytecode
+Alliance) 구축하였고, 브라우저를 벗어난 웹어셈블리 런타임에 대한 표준과 도구를
+개발을 시작하였다. 현재 WASI (WebAssembly System Interface)를 구현한 WASM
+런타임을 제공하고 있다.</p>
+<h3 id="특징"><a href="#특징" class="headerlink" title="특징"></a>특징</h3><ul>
+<li>이식성 (Portable) - 한번 빌드하면 여러 플랫폼에서 활용가능</li>
+<li>범용성 (Universal) - 많은 언어가 WASM으로 컴파일 가능</li>
+<li>빠른 시작 시간 - Docker보다 10~100x 빠른 시작시간</li>
+<li>안전성 (Secure) - 메모리 샌드박싱, 기능 제한</li>
+<li>성능 - 네이티브에 가까운 성능 (1.5배 느림), JavaScript 보다는 항상 빠름</li>
+</ul>
+<h3 id="적용-예"><a href="#적용-예" class="headerlink" title="적용 예"></a>적용 예</h3><p>웹어셈블리의 적용 범위는 컨테이너화, 플러그인 시스템, 서버리스 컴퓨팅 플랫폼 등
+기술 영역에서의 활발한 활용된다. 또한, 보안 측면에서도 샌드박스화된 외부
+라이브러리의 안전한 실행, 제한된 권한 시스템, 그리고 라이브러리 격리 능력 등이
+포함된다.</p>
+<ul>
+<li>WASM 적용 범위 참고: <a target="_blank" rel="external nofollow noopener noreferrer" href="https://harshal.sheth.io/2022/01/31/webassembly.html">https://harshal.sheth.io/2022/01/31/webassembly.html</a></li>
+</ul>
+<h2 id="WASI-WebAssembly-System-Interface"><a href="#WASI-WebAssembly-System-Interface" class="headerlink" title="WASI (WebAssembly System Interface)"></a>WASI (WebAssembly System Interface)</h2><p>WASI(WebAssembly System Interface)는 웹 어셈블리 애플리케이션이 호스트 시스템과
+상호 작용할 수 있도록 하는 표준 인터페이스이다. 이를 통해 웹 어셈블리
+애플리케이션은 파일 시스템, 네트워킹 등의 시스템 리소스에 접근하도록 되었다.</p>
+<p>WASI가 등장하기 이전에는 Emscripten이 사용되었으며 자체적으로 JavaScript layer와
+WASM layer로 구성해 브라우저와 통신해서 시스템 기능을 사용하였다. de-facto
+표준으로 다뤄지나 속도나, Private API 사용등의 문제가 있다.
+(<a target="_blank" rel="external nofollow noopener noreferrer" href="https://hacks.mozilla.org/2019/03/standardizing-wasi-a-webassembly-system-interface/">https://hacks.mozilla.org/2019/03/standardizing-wasi-a-webassembly-system-interface/</a>)</p>
+<h3 id="WASI-사용-모듈과-Node-js-모듈-비교"><a href="#WASI-사용-모듈과-Node-js-모듈-비교" class="headerlink" title="WASI 사용 모듈과 Node.js 모듈 비교"></a>WASI 사용 모듈과 Node.js 모듈 비교</h3><ul>
+<li><p>Portability: WASM 모듈은 Write one time, Use everywhere이 고려되었다. Node.js
+Native 모듈이 환경마다 node-gyp를 통해 빌들을 수행하는 것에 비해 한번 빌드된
+형태로 그대로 배포가 가능하다.</p>
+</li>
+<li><p>Security: Capability-based security 전략을 사용한다. &quot;권한이 프로그램 단위가
+아니라 모듈 단위&quot;로 이루어지고, 모듈 단위로 전파될 때 권한에 대한 수정도
+가능하다. Node.js에서도 Permission 모델이 구축되고 있지만, 런타임 단위의
+보안을 제공하고 모듈 단위의 제어는 불가하다. (관련된 Node.js 해킹사례:
+electron-native-notify NPM 모듈의 ZipSlip)</p>
+</li>
+</ul>
+<blockquote>
+<p>Capability-based security 전략에서 각각의 개체(사용자, 프로세스, 모듈 등)는
+자신이 필요로 하는 특정한 능력을 가지고 있어야만 특정 능력을 수행할 수 있다.
+예를 들어, 파일에 액세스해야 하는 함수를 호출하는 경우, 해당 함수는 파일에
+대한 적절한 권한이 부여된 능력을 가진 객체에게만 실행되도록 할 수 있다. 이를
+통해 권한이 필요한 동작을 수행하는 데 필요한 최소한의 권한만 부여할 수 있게
+되며, 보안을 강화할 수 있다.</p>
+</blockquote>
+<p>3rd party NPM 모듈 Vulnerability를 보장할 수 없기 때문에 Node.js 런타임은 실제
+Production 에서 사용되기기 어렵다. 이에 비해 WASM 모듈은 WASI 인터페이스가
+Sandboxing을 고려하여 설계되어있다.</p>
+<h3 id="표준화"><a href="#표준화" class="headerlink" title="표준화"></a>표준화</h3><p>현재 WASI의 모든 API는 Proposal 단계 (Phase 2) 이다. 아직 실험적 상태에고
+인터페이스가 변경이 가능함을 의미한다. 자세한 현황은
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/WebAssembly/WASI/blob/main/Proposals.md">https://github.com/WebAssembly/WASI/blob/main/Proposals.md</a> 를 참조할 수 있다.</p>
+<h3 id="WASM-Runtime-현황"><a href="#WASM-Runtime-현황" class="headerlink" title="WASM Runtime 현황"></a>WASM Runtime 현황</h3><p>브라우저 외부에서 WASM을 사용할 수 있는 Runtime은 다음과 같다.</p>
+<ul>
+<li><p>Bytecode Alliance, Standalone Runtime</p>
+<ul>
+<li>wasmtime: WSAM Standalone Runtime, wasi-core, (Standard compliant),
+브라우저용 WASI Polyfill,</li>
+<li>WAMR (WebAssembly Micro Runtime): Binary size  85K (interpreter) and 50K
+(AOT) and low memory usage</li>
+</ul>
+</li>
+<li><p>QuickJS 기반 JS 인터페이스 제공</p>
+<ul>
+<li>Wasmer (<a target="_blank" rel="external nofollow noopener noreferrer" href="https://medium.com/wasmer/wasmer-1-0-3f86ca18c043">https://medium.com/wasmer/wasmer-1-0-3f86ca18c043</a>)</li>
+<li>WASMedge (<a target="_blank" rel="external nofollow noopener noreferrer" href="https://wasmedge.org/">https://wasmedge.org</a>)<ul>
+<li>CJS NPM 모듈은 rollup.js을 통해 번들링하여 사용,
+<a target="_blank" rel="external nofollow noopener noreferrer" href="https://wasmedge.org/book/en/write_wasm/js/tensorflow.html">https://wasmedge.org/book/en/write_wasm/js/tensorflow.html</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Cloudflare</p>
+<ul>
+<li>Workerd (<a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/cloudflare/workerd">https://github.com/cloudflare/workerd</a>)</li>
+<li>Workers 서비스의 Core, 분산 컴퓨팅 Microservice 운용에 특화</li>
+</ul>
+</li>
+<li><p>Node.js</p>
+<ul>
+<li>WASI: application&#39;s sandbox directory structure, stdio&#x2F;out&#x2F;stderr 제공
+(Experimental) <a target="_blank" rel="external nofollow noopener noreferrer" href="https://webassembly.org/roadmap/">https://webassembly.org/roadmap/</a></li>
+</ul>
+</li>
+<li><p>Web Container</p>
+<ul>
+<li>WASM으로 Node.js 개발환경을 아에 제공. JS를 직접 돌림. Node 14. 지원</li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://github.com/stackblitz/webcontainer-core">https://github.com/stackblitz/webcontainer-core</a></li>
+</ul>
+</li>
+<li><p>Blazor</p>
+<ul>
+<li>Flutter 같은 웹 F&#x2F;W, C# 기반으로 작성, 브라우저에서는 WASM을 이용</li>
+</ul>
+</li>
+</ul>
+<h2 id="Containerization"><a href="#Containerization" class="headerlink" title="Containerization"></a>Containerization</h2><p>서버 어플리케이션 배포에 용이한 Docker에 비해 WASM은 콜드 스타트 ​​시간이
+10~100배 빠르며 메모리 사용량이 적고 뛰어난 보안 모델을 채용하고 있다.
+컨테이너가 아닌 WASM 모듈이 연산 및 배포의 최소 단위가 될 가능성이 높으나,
+한번에 Docker를 완전히 대체하지는 않고 기존 오케스트레이션 시스템에 통합되는
+형태로 진행될 것이라 예측된다.</p>
+<p>이러한 흐름과 별개의 Containerization 기술은 아래와 같다.</p>
+<h3 id="Lightweight-Virtualization"><a href="#Lightweight-Virtualization" class="headerlink" title="Lightweight Virtualization"></a>Lightweight Virtualization</h3><p>Lightweight Virtualization은 전통적인 가상화 기술과는 다르게 더 가벼운 방식으로
+가상화를 구현하는 기술을 말한다. 더 적은 오버헤드와 빠른 부팅 시간을
+제공하면서도 격리와 보안을 유지한다. AWS Firecracker가 이러한 Lightweight
+Virtualization 기술의 한 예로, 멀티 테넌시 환경에서 안전하게 컨테이너를
+실행하도록 되어있다. KVM(Kernel-based Virtual Machine)을 기반으로 하며, 커널
+기능을 최소화하여 경량화된 가상화를 제공한다.</p>
+<ul>
+<li>참고자료: <a target="_blank" rel="external nofollow noopener noreferrer" href="https://www.koyeb.com/blog/lightweight-virtualization-the-container-ecosystem-and-firecracker-microvms-for-serverless">https://www.koyeb.com/blog/lightweight-virtualization-the-container-ecosystem-and-firecracker-microvms-for-serverless</a></li>
+</ul>
+<h3 id="JavaScript-Container"><a href="#JavaScript-Container" class="headerlink" title="JavaScript Container"></a>JavaScript Container</h3><p>JavaScript Container는 Node.js의 한계와 함께 등장한 새로운 개념으로, 브라우저
+API 디자인 개념을 공유함으로써 웹 개발자들이 JavaScript 런타임을 사용할 때
+배워야 할 개념을 줄일 수 있는 장점을 갖는다. 또, 메모리 사용량보다는 인스턴스
+사용 시간이 중요한 Serverless 환경에서 빠른 재구동 시간을 제공하여 비용을 절감할
+수 있다. 기존의 Microservice 아키텍처를 더 작은 단위의 컴포넌트로 분리하는
+새로운 애플리케이션 아키텍처 구축이 가능하다. (Linux Container를 대체하는 것이
+아니라 고성능 및 경량을 요구하는 일부 분야에서 광범위한 애플리케이션 적용 예상)</p>
+<ul>
+<li><p>예: CloudFlare Worker (JS Container &#x2F; Worker, v8::Isolate)</p>
+<ul>
+<li>Node.js 가 개별 장치의 앱 제작을 위해 만들어졌다면 Worker는 CloudFlare 특화 분산 네트웍 컴퓨팅을 위해 만들어짐</li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://developers.cloudflare.com/workers">https://developers.cloudflare.com/workers</a></li>
+</ul>
+</li>
+<li><p>예: Deno deploy (JS Container)</p>
+<ul>
+<li>Web Platform APIs 기반, 프로그래머가 알아야 할 개념들을 최소화 + Single
+Executable, No NPM, TypeScript, CLI</li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://deno.land/">https://deno.land</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://tinyclouds.org/javascript_containers">https://tinyclouds.org/javascript_containers</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://webassembly.org/">https://webassembly.org</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://bytecodealliance.org/">https://bytecodealliance.org</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://harshal.sheth.io/2022/01/31/webassembly.html">Pay attention to WebAssembly</a></li>
+<li><a target="_blank" rel="external nofollow noopener noreferrer" href="https://www.yieldcode.blog/post/native-rust-wasm/">NodeJS Native Module vs WASM</a></li>
+</ul>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="https://llnm.github.io/article/2023-11-27-wasm/" data-id="clpjs0ssw0014goor2oy2chfe" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "Daeyeon Jeong"
+        },
+        "headline": "WebAssembly 기술 동향",
+        "image": "https://llnm.github.iohttps://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png",
+        "keywords": "",
+        "genre": "article",
+        "datePublished": "2023-11-27",
+        "dateCreated": "2023-11-27",
+        "dateModified": "2023-11-29",
+        "url": "https://llnm.github.io/article/2023-11-27-wasm/",
+        "description": "WebAssembly (WASM)웹어셈블리(WebAssembly 또는 Wasm)는 다양한 프로그래밍 언어와 많은 실행 환경
+사이의 중간 계층으로, 30여 가지 이상의 언어로 작성된 코드를 .wasm 파일로
+컴파일한 다음 브라우저나 다른 실행 환경에서 실행할 수 있다. 원래 웹에서 코드
+실행 속도를 높이기 위해 개발되었지만 이제는 브라우저 이외의 다양한 환경",
+        "wordCount": 735
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="https://twitter.com/daeye0n" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/daeyeon" target="_blank" rel="external nofollow noopener noreferrer">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+    
+        <a href="/article/2023-11-26-js-object-lifetime/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">JavaScript Object의 생명주기 관리</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-27-wasm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://www.w3.org/comm/assets/logos/web-assembly-logo-black-150px.png)" alt="WebAssembly 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-27-wasm/" class="title">WebAssembly 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-26T15:30:20.000Z" itemprop="datePublished">2023-11-27</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-26-js-object-lifetime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqL1opV0NW1UwgOCfL3c-dSLMlIzU1VKMhJzMzjgogp6BZlpmeUANWEuzp6K1gp-CZmp4anJmZzgfm6OalpJXADgNLOOamJRUjyMN3-eW6ZeYk5mVWpKVxIbKDtYBOwG4GiEGoTyFhUCagV0VqxXFxgtkJafn5JapHCo8mTFIwMjIz1FDJKSgqKrfT1c3LycvXSM0sySpP0MvO5ADKMUR4=)" alt="JavaScript Object의 생명주기 관리" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-26-js-object-lifetime/" class="title">JavaScript Object의 생명주기 관리</a></p>
+                            <p class="item-date"><time datetime="2023-11-25T15:30:20.000Z" itemprop="datePublished">2023-11-26</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-24-memory-management/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://kroki.io/plantuml/svg/eNqtUk1v00AQve-veFxQEiUpKheUREhQqagSiEhU4hiN7Wm9eLJjebdBfPRPwD_kl3TXbozb5NBDT54vv33vzQC-sq6mhrYQ6zj8qBnahFLNi1DyllELWWew5sZbH9iF9-QZq9-zGT6IZiQGuzdYxfThiMFXpuqMRDLKq8uEe2yow8BMZopU-Zx94zwYXHgVCkf_MciFvH9M6ZcBdmoLfOGQnh6tJ2iFceBmij0T5PfB9JBgUj_ew5wJU9MCpVKmKpFUn19OsCPZGNxGPuxutodoiVC13jNIyYWLgSM5tyyFT5VzG1P7M7VvDZxGxUFr6NUh3GIAhu9WJKqLLlDLdiAVrcqgiPvrxfamxV31Rn2iiltB74qiYe8noC6Y4jm9iw51b__fb8vBunRxkdFi8VEj8ipFXf8ttP2OxsjV-bB84ngq3V_OBLYLjkN0dzfEeIm6P6jReGkG8w_MGi8fdQZiU-s4-gB8U5IrhDdLE51p7HUZcKWaNvfv7x-cvjp9PUcZQu0XJycibju_tqG8yeZWzR3jszw1)" alt="Node.js C++ Core Concept" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-24-memory-management/" class="title">Node.js C++ Core Concept</a></p>
+                            <p class="item-date"><time datetime="2023-11-23T15:30:20.000Z" itemprop="datePublished">2023-11-24</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-23-realm/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/NuZ8NoJ.png)" alt="Realm Class" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-23-realm/" class="title">Realm Class</a></p>
+                            <p class="item-date"><time datetime="2023-11-22T15:30:20.000Z" itemprop="datePublished">2023-11-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/article/2023-11-22-javascript-runtime/" class="thumbnail">
+    
+    
+        <span style="background-image:url(https://i.imgur.com/U2uMvGh.png)" alt="Server JavaScript Runtime 기술 동향" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/article/">article</a></p>
+                            <p class="item-title"><a href="/article/2023-11-22-javascript-runtime/" class="title">Server JavaScript Runtime 기술 동향</a></p>
+                            <p class="item-date"><time datetime="2023-11-21T15:13:00.000Z" itemprop="datePublished">2023-11-22</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">categories</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/article/">article</a><span class="category-list-count">18</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/talk/">talk</a><span class="category-list-count">3</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">July 2023</a><span class="archive-list-count">7</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ai/" rel="tag">ai</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/node-js/" rel="tag">node.js</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/ai/" style="font-size: 10px;">ai</a> <a href="/tags/node-js/" style="font-size: 20px;">node.js</a> <a href="/tags/python/" style="font-size: 10px;">python</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2023 Daeyeon Jeong</p>
+                
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'https://llnm.github.io/article/2023-11-27-wasm/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+    
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+</body>
+</html>
